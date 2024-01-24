@@ -1,0 +1,9 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "DistRLdynamics"
+  site-url: "https://BarfussLab.github.io/DistRLdynamics"
+  description: "distributional RL for collective RL dynamics"
+  repo-branch: main
+  repo-url: "https://github.com/BarfussLab/DistRLdynamics"
