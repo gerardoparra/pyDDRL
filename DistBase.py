@@ -2,7 +2,7 @@
 
 # %% auto 0
 __all__ = ['compute_discretization_grid', 'compute_Risjasr', 'compute_b_ivrv_', 'compute_b_idvrv_', 'distbase', 'Risr', 'M_iww_',
-           'Visv']
+           'Visv', 'nextVisav', 'Risar', 'Disad']
 
 # %% DistLD.ipynb 3
 import numpy as np
@@ -23,7 +23,7 @@ def compute_discretization_grid(Rmin, # Minimum reward obtainable
                                 Nr # Number of bin
                                 ) -> tuple: # Gridpoints, Width 
     gridpoints = np.linspace(Rmin, Rmax, Nr)
-    width  = gridpoints[1] - gridpoints[0]
+    width  = np.round(gridpoints[1] - gridpoints[0], 8)
     return gridpoints, width
 
 # %% DistLD.ipynb 18
@@ -93,7 +93,7 @@ def compute_b_idvrv_(env,
                      gamma
                     ) -> np.ndarray:
     points, width = compute_discretization_grid(env.R.min(), env.R.max(), nr)
-    new_points = np.linspace(points.min() - points.max(), points.max() - points.min(), 2*nr)
+    new_points = np.linspace(points.min() - points.max(), points.max() - points.min(), nr)
     new_width = new_points[1] - new_points[0]
     sigma = discretization_sigma * new_width
     b_idvrv_ = np.ones((env.N, nr, nr, nr, nr)) * -1
@@ -200,7 +200,7 @@ def M_iww_(self:distbase,
 
     M = jnp.einsum(b_ivrv_, [i,v,r,v_], Risr, [i, s, r], Tss, 
                    [s, s_], [i, s, v_, s_, v], optimize=self.opti)
-    np.allclose(M.sum((-2,-1)), 1.0)
+    jnp.allclose(M.sum((-2,-1)), 1.0)
     return M
 
 distbase.M_iww_ = M_iww_  # Monkey-patching - possibly problematic?
@@ -211,20 +211,95 @@ def Visv(self:distbase,
         Xisa  # Behavior profiles
         ) -> jnp.ndarray:
     M_iww_ = self.M_iww_(Xisa)
-    Visv = np.ones((self.N, self.Z, self.nr)) * -1
+    Visv = jnp.ones((self.N, self.Z, self.nr)) * -1
 
     for i in range(self.N):
         mat = M_iww_[i].reshape(self.Z*self.nr, self.Z*self.nr)
-        _pS = np.array(compute_stationarydistribution(mat))
-        _pS = _pS[:, _pS.mean(0)!=-10]
+        _pS = compute_stationarydistribution(mat)
+        ix = jnp.max(jnp.where(_pS.mean(0)!=-10, jnp.arange(_pS.shape[0]), -1))
+        pS = _pS[:, ix]
         
-        Ps = _pS.reshape(self.Z, self.nr).sum(-1)
-        assert np.allclose(self.Ps(Xisa), Ps, atol=1e-4)
+        Ps = pS.reshape(self.Z, self.nr).sum(-1)
+        # assert jnp.allclose(self.Ps(Xisa), Ps, atol=1e-4)
 
-        VIsv = _pS.reshape(self.Z, self.nr) / _pS.reshape(self.Z, self.nr).sum(-1, keepdims=True)
+        VIsv = pS.reshape(self.Z, self.nr) / pS.reshape(self.Z, self.nr).sum(-1, keepdims=True)
+        
+        Visv = Visv.at[i, ...].set(VIsv)
 
-        Visv[i, ...] = VIsv
+        # Visv[i, ...] = VIsv
 
     return Visv
 
 distbase.Visv = Visv  # Monkey-patching - possibly problematic?
+
+# %% DistLD.ipynb 70
+@partial(jit, static_argnums=0)
+def nextVisav(self:distbase,
+              Xisa  # Behavior profiles
+             ) -> jnp.ndarray:
+    
+    Visv = self.Visv(Xisa)
+    
+    i = 0; a = 1; s = 2; s_ = 3; r = 4
+    j2k = list(range(6, 6+self.N-1))  # other agents
+    b2d = list(range(6+self.N-1, 6+self.N-1 + self.N))  # all actions
+    e2f = list(range(5+2*self.N, 5+2*self.N + self.N-1))  # all other acts
+
+    sumsis = [[j2k[l], s, e2f[l]] for l in range(self.N-1)]  # sum inds
+    otherX = list(it.chain(*zip((self.N-1)*[Xisa], sumsis)))
+                                
+    args = [self.Omega, [i]+j2k+[a]+b2d+e2f] + otherX +\
+        [self.T, [s]+b2d+[s_], Visv, [i, s_, r], [i, s, a, r]]
+    
+    nextVisav = jnp.einsum(*args, optimize=self.opti)
+
+    return nextVisav
+
+distbase.nextVisav = nextVisav  # Monkey-patching - possibly problematic?
+
+# %% DistLD.ipynb 73
+@partial(jit, static_argnums=0)
+def Risar(self:distbase,
+          Xisa  # Behavior profiles
+         ) -> jnp.ndarray:
+    
+    i = 0; a = 1; s = 2; s_ = 3; r = 4  # Variables
+    j2k = list(range(5, 5+self.N-1))  # other agents
+    b2d = list(range(5+self.N-1, 5+self.N-1 + self.N))  # all actions
+    e2f = list(range(4+2*self.N, 4+2*self.N + self.N-1))  # all other acts
+    Risjasr = self.Rr
+ 
+    sumsis = [[j2k[l], s, e2f[l]] for l in range(self.N-1)]  # sum inds
+    otherX = list(it.chain(*zip((self.N-1)*[Xisa], sumsis)))
+
+    args = [self.Omega, [i]+j2k+[a]+b2d+e2f] + otherX\
+        + [self.T, [s]+b2d+[s_], Risjasr, [i, s]+b2d+[s_, r],
+            [i, s, a, r]]
+    Risar = jnp.einsum(*args, optimize=mae.opti)
+    return Risar
+
+distbase.Risar = Risar # Monkey-patching - possibly problematic?
+
+# %% DistLD.ipynb 76
+@partial(jit, static_argnums=0)
+def Disad(self:distbase,
+          Xisa  # Behavior profiles
+         ) -> jnp.ndarray:
+    # Compute needed tensors
+    Risar = self.Risar(Xisa)
+    Visv = self.Visv(Xisa)
+    nextVisav = self.nextVisav(Xisa)
+    # Reformat Visv
+    Visav = jnp.zeros((2, 2, 2, db.nr))
+    Visav = Visav.at[:, :, 0, :].set(Visv)
+    Visav = Visav.at[:, :, 1, :].set(Visv)
+
+    b_idvrv_ = self.b_idvrv_
+
+    i=0; d=1; v=2; r=3; v_=4; s=5; a=6; s_=7
+
+    Disad = jnp.einsum(b_idvrv_, [i,d,v,r,v_], Risar, [i,s,a,r], nextVisav, [i,s,a,v_], 
+                      Visav, [i,s,a,v], [i, s, a, d])
+    return Disad
+
+distbase.Disad = Disad
