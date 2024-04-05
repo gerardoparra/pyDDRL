@@ -2,7 +2,7 @@
 
 # %% auto 0
 __all__ = ['compute_discretization_grid', 'compute_Risjasr', 'compute_b_ivrv_', 'compute_b_idvrv_', 'distbase', 'Risr', 'M_iww_',
-           'Visv', 'nextVisav', 'Risar', 'Disad']
+           'Visv', 'nextVisav', 'Risar', 'Disad', 'RPEisa']
 
 # %% DistLD.ipynb 3
 import numpy as np
@@ -12,7 +12,7 @@ import jax.numpy as jnp
 from jax import jit
 from functools import partial
 
-
+import itertools as it
 
 from pyCRLD.Agents.Base import abase
 from pyCRLD.Utils.Helpers import *
@@ -180,7 +180,7 @@ def Risr(self:distbase, Xisa):
     X4einsum = list(it.chain(*zip(Xisa,
                             [[s, b2d[a]] for a in range(self.N)])))
 
-    args = X4einsum + [env.T, [s]+b2d+[sprim],
+    args = X4einsum + [self.T, [s]+b2d+[sprim],
                        Risjasr, [i, s]+b2d+[sprim, r], [i, s, r]]
 
     return jnp.einsum(*args, optimize=self.opti)
@@ -275,7 +275,7 @@ def Risar(self:distbase,
     args = [self.Omega, [i]+j2k+[a]+b2d+e2f] + otherX\
         + [self.T, [s]+b2d+[s_], Risjasr, [i, s]+b2d+[s_, r],
             [i, s, a, r]]
-    Risar = jnp.einsum(*args, optimize=mae.opti)
+    Risar = jnp.einsum(*args, optimize=self.opti)
     return Risar
 
 distbase.Risar = Risar # Monkey-patching - possibly problematic?
@@ -290,7 +290,7 @@ def Disad(self:distbase,
     Visv = self.Visv(Xisa)
     nextVisav = self.nextVisav(Xisa)
     # Reformat Visv
-    Visav = jnp.zeros((2, 2, 2, db.nr))
+    Visav = jnp.zeros((2, 2, 2, self.nr))
     Visav = Visav.at[:, :, 0, :].set(Visv)
     Visav = Visav.at[:, :, 1, :].set(Visv)
 
@@ -303,3 +303,20 @@ def Disad(self:distbase,
     return Disad
 
 distbase.Disad = Disad
+
+# %% DistLD.ipynb 79
+@partial(jit, static_argnums=(0,2))
+def RPEisa(self:distbase,
+          Xisa,  # Behavior profiles
+          norm=False) -> jnp.ndarray:
+    gpoints = self.gridpoints
+    newpoints = jnp.linspace(gpoints.min() - gpoints.max(), gpoints.max() - gpoints.min(), self.nr)
+    # Compute needed tensors
+    Disad = self.Disad(Xisa)
+    RPEisa = jnp.einsum('ijkl,l->ijk', Disad, newpoints)
+    n = jnp.newaxis
+    RPEisa *= self.beta[:,n,n]
+    RPEisa = RPEisa - RPEisa.mean(axis=2, keepdims=True) if norm else RPEisa
+    return RPEisa
+
+distbase.RPEisa = RPEisa
