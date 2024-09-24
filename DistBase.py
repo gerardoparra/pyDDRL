@@ -2,9 +2,9 @@
 
 # %% auto 0
 __all__ = ['compute_discretization_grid', 'compute_Risjasr', 'compute_b_ivrv_', 'compute_b_idvrv_', 'distbase', 'Risr', 'M_iww_',
-           'Visv', 'nextVisav', 'Risar', 'Disad', 'RPEisa']
+           'Visv', 'nextVisav', 'Risar', 'Disad', 'TDerror']
 
-# %% DistLD.ipynb 3
+# %% DistLD.ipynb 4
 import numpy as np
 from scipy.stats import norm
 from scipy.stats import expectile
@@ -19,7 +19,7 @@ from pyCRLD.Agents.Base import abase
 from pyCRLD.Agents.StrategyActorCritic import stratAC
 from pyCRLD.Utils.Helpers import *
 
-# %% DistLD.ipynb 10
+# %% DistLD.ipynb 11
 def compute_discretization_grid(Rmin, # Minimum reward obtainable
                                 Rmax, # Maximum reward obtainable
                                 Nr # Number of bin
@@ -28,7 +28,7 @@ def compute_discretization_grid(Rmin, # Minimum reward obtainable
     width  = np.round(gridpoints[1] - gridpoints[0], 8)
     return gridpoints, width
 
-# %% DistLD.ipynb 18
+# %% DistLD.ipynb 19
 def compute_Risjasr(env, # The env object
                     nr,  # The number of reward bins
                     discretization_sigma # Width of the discritization normal distribution
@@ -40,7 +40,7 @@ def compute_Risjasr(env, # The env object
     Risjasr = np.ones(env.R.shape + (nr,)) * -1  # last dim is distrib
         
     # scale the standard devision with the width of the discritization grid 
-    sig = discretization_sigma*width
+    sig = discretization_sigma
 
     # go through the reward tensor of the envrionment
     for index, _ in np.ndenumerate(env.R):
@@ -57,7 +57,7 @@ def compute_Risjasr(env, # The env object
 
     return Risjasr
 
-# %% DistLD.ipynb 27
+# %% DistLD.ipynb 28
 # Smoothed Bellman Kronecker delta for Bellman equation
 def compute_b_ivrv_(env, # env object
                     nr, # number of bins
@@ -66,7 +66,7 @@ def compute_b_ivrv_(env, # env object
                    ) -> np.ndarray: 
     
     points, width = compute_discretization_grid(env.R.min(), env.R.max(), nr)
-    sigma = discretization_sigma * width
+    sigma = discretization_sigma
     b_ivrv_ = np.ones((env.N, nr, nr, nr)) * -1
 
     for v in range(nr):
@@ -87,7 +87,7 @@ def compute_b_ivrv_(env, # env object
                 b_ivrv_[:,v,r,v_] = prop
     return b_ivrv_
 
-# %% DistLD.ipynb 28
+# %% DistLD.ipynb 29
 # Smoothed Bellman Kronecker delta for prediction error
 def compute_b_idvrv_(env,
                      nr, 
@@ -97,7 +97,7 @@ def compute_b_idvrv_(env,
     points, width = compute_discretization_grid(env.R.min(), env.R.max(), nr)
     new_points = np.linspace(points.min() - points.max(), points.max() - points.min(), nr)
     new_width = new_points[1] - new_points[0]
-    sigma = discretization_sigma * new_width
+    sigma = discretization_sigma
     b_idvrv_ = np.ones((env.N, nr, nr, nr, nr)) * -1
 
     for d in range(nr):
@@ -119,7 +119,7 @@ def compute_b_idvrv_(env,
                     b_idvrv_[:,d,v,r,v_] = prop
     return b_idvrv_
 
-# %% DistLD.ipynb 30
+# %% DistLD.ipynb 31
 class distbase(abase):
     """
     Base class for deterministic strategy-average independent (multi-agent)
@@ -173,7 +173,7 @@ class distbase(abase):
         
 
 
-# %% DistLD.ipynb 40
+# %% DistLD.ipynb 41
 @partial(jit, static_argnums=0)    
 def Risr(self:distbase, Xisa):
     i = 0; s = 1; sprim = 2; r=3; b2d = list(range(4, 4+self.N))
@@ -189,7 +189,7 @@ def Risr(self:distbase, Xisa):
 
 distbase.Risr = Risr  # Monkey-patching - possibly problematic?
 
-# %% DistLD.ipynb 64
+# %% DistLD.ipynb 65
 @partial(jit, static_argnums=0)    
 def M_iww_(self:distbase, 
            Xisa  # Behavior profiles
@@ -207,7 +207,7 @@ def M_iww_(self:distbase,
 
 distbase.M_iww_ = M_iww_  # Monkey-patching - possibly problematic?
 
-# %% DistLD.ipynb 66
+# %% DistLD.ipynb 67
 @partial(jit, static_argnums=0)
 def Visv(self:distbase,
         Xisa  # Behavior profiles
@@ -234,7 +234,7 @@ def Visv(self:distbase,
 
 distbase.Visv = Visv  # Monkey-patching - possibly problematic?
 
-# %% DistLD.ipynb 70
+# %% DistLD.ipynb 71
 @partial(jit, static_argnums=0)
 def nextVisav(self:distbase,
               Xisa  # Behavior profiles
@@ -259,7 +259,7 @@ def nextVisav(self:distbase,
 
 distbase.nextVisav = nextVisav  # Monkey-patching - possibly problematic?
 
-# %% DistLD.ipynb 73
+# %% DistLD.ipynb 74
 @partial(jit, static_argnums=0)
 def Risar(self:distbase,
           Xisa  # Behavior profiles
@@ -282,7 +282,7 @@ def Risar(self:distbase,
 
 distbase.Risar = Risar # Monkey-patching - possibly problematic?
 
-# %% DistLD.ipynb 76
+# %% DistLD.ipynb 77
 @partial(jit, static_argnums=0)
 def Disad(self:distbase,
           Xisa  # Behavior profiles
@@ -306,11 +306,9 @@ def Disad(self:distbase,
 
 distbase.Disad = Disad
 
-# %% DistLD.ipynb 79
-# Return optimism
-
+# %% DistLD.ipynb 80
 @partial(jit, static_argnums=(0,2))
-def RPEisa(self:distbase,
+def TDerror(self:distbase,
           Xisa,  # Behavior profiles
           norm=False) -> jnp.ndarray:
     ag = stratAC(env=self.env, learning_rates=self.alpha, discount_factors=self.gamma, use_prefactor=True)
@@ -328,4 +326,4 @@ def RPEisa(self:distbase,
     RPEisa = RPEisa - RPEisa.mean(axis=2, keepdims=True) if norm else RPEisa
     return RPEisa
 
-distbase.RPEisa = RPEisa
+distbase.TDerror = TDerror
