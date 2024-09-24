@@ -7,6 +7,7 @@ __all__ = ['compute_discretization_grid', 'compute_Risjasr', 'compute_b_ivrv_', 
 # %% DistLD.ipynb 3
 import numpy as np
 from scipy.stats import norm
+from scipy.stats import expectile
 
 import jax.numpy as jnp
 from jax import jit
@@ -15,6 +16,7 @@ from functools import partial
 import itertools as it
 
 from pyCRLD.Agents.Base import abase
+from pyCRLD.Agents.StrategyActorCritic import stratAC
 from pyCRLD.Utils.Helpers import *
 
 # %% DistLD.ipynb 10
@@ -305,16 +307,23 @@ def Disad(self:distbase,
 distbase.Disad = Disad
 
 # %% DistLD.ipynb 79
+# Return optimism
+
 @partial(jit, static_argnums=(0,2))
 def RPEisa(self:distbase,
           Xisa,  # Behavior profiles
           norm=False) -> jnp.ndarray:
+    ag = stratAC(env=self.env, learning_rates=self.alpha, discount_factors=self.gamma, use_prefactor=True)
     gpoints = self.gridpoints
-    newpoints = jnp.linspace(gpoints.min() - gpoints.max(), gpoints.max() - gpoints.min(), self.nr)
     # Compute needed tensors
-    Disad = self.Disad(Xisa)
-    RPEisa = jnp.einsum('ijkl,l->ijk', Disad, newpoints)
-    n = jnp.newaxis
+    Risa = self.Risa(Xisa)
+    Visv = self.Visv(Xisa)
+    # Vise = expectile(Visv, alpha)
+    # Vise = jnp.quantile(Visv, 0.5, axis=2)
+    Vise = jnp.einsum('ijk,k->ij', Visv, gpoints)
+    nextVisa = ag.NextVisa(Xisa, Vis=Vise)
+    n = jnp.newaxis 
+    RPEisa = (1 - self.gamma[:,n,n]) * Risa + self.gamma[:,n,n] * nextVisa - Vise[:,:,n]
     RPEisa *= self.beta[:,n,n]
     RPEisa = RPEisa - RPEisa.mean(axis=2, keepdims=True) if norm else RPEisa
     return RPEisa
