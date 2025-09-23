@@ -1,6 +1,5 @@
 _docs/
 _proc/
-data/
 
 *.bak
 .gitattributes
@@ -27,6 +26,7 @@ __pycache__/
 .Python
 env/
 build/
+conda/
 develop-eggs/
 dist/
 downloads/
@@ -151,4 +151,3 @@ checklink/cookies.txt
 # Quarto
 .quarto
 
-/.quarto/

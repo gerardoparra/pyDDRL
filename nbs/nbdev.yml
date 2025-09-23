@@ -1,0 +1,9 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "pyDDRL"
+  site-url: "https://clembergerot.github.io/pyDDRL"
+  description: "Distributional Deterministic Reinforcement Learning"
+  repo-branch: main
+  repo-url: "https://github.com/clembergerot/pyDDRL"
