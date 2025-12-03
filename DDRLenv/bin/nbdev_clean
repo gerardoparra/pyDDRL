@@ -1,8 +1,0 @@
-#!/home/bergerot/Documents/PhD/Code/pyDDRL/DDRLenv/bin/python3
-# -*- coding: utf-8 -*-
-import re
-import sys
-from nbdev.clean import nbdev_clean
-if __name__ == '__main__':
-    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
-    sys.exit(nbdev_clean())
