@@ -1,0 +1,17 @@
+project:
+  type: python
+  nbs_path: nbs
+  lib_path: pyDDRL
+  doc_path: _docs
+  src_path: .
+  readme: README.md
+
+package:
+  name: pyDDRL
+
+website:
+  title: "pyDDRL"
+  site-url: "https://clembergerot.github.io/pyDDRL"
+  description: "Distributional Deterministic Reinforcement Learning"
+  repo-branch: main
+  repo-url: "https://github.com/clembergerot/pyDDRL"
