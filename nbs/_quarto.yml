@@ -1,22 +1,79 @@
 project:
-  type: website
+  type: book
+  output-dir: _proc/_docs
+
+csl: apa7.csl
+bibliography: DDRL.bib
+
+book:
+  title: Deterministic Distributional Reinforcement Learning
+  author: Clemence Bergerot, Wolfram Barfuss
+  date: last-modified
+  date-format: long
+  downloads: [pdf]
+  repo-url: https://github.com/clembergerot/pyDDRL
+  chapters:
+    - index.ipynb
+    - text: Introduction  
+      href: 01_Introduction.ipynb
+    - part: 02_Agents.ipynb
+      chapters: 
+        - 02.01_DDRLBase.ipynb
+        - 02.02_DDRLSarsa.ipynb
+        - 02.03_DDRLActorCritic.ipynb
+        - 02.04_BiasingMethods.ipynb
+    - part: 03_Environments.ipynb
+      chapters:
+        - 03.01_TwoArmedBandit.ipynb
+        - 03.02_SocialDilemma.ipynb
+        - 03.03_RiskRewardDilemma.ipynb
+    - part: 04_Utilities.ipynb
+      chapters:
+        - 04.01_Trajectories.ipynb
+        - 04.02_PhasePlot.ipynb
+        - 04.03_PlottingTools.ipynb
+    - part: 05_DiscretizationCalibration.ipynb
+    - part: 06_Results.ipynb
+      chapters:
+        - 06.01_ExplorationExploitationChallenge.ipynb
+        - 06.02_SocialCoordinationTask.ipynb
+        - 06.03_IntertemporalRiskyChoice.ipynb
+    - References.ipynb
 
 format:
   html:
-    theme: cosmo
-    css: styles.css
+    theme: Zephyr # Cosmo 
     toc: true
-    keep-md: true
-  commonmark: default
+    number-sections: true
+    crossref:
+      chapters: true
+    number-depth: 2
+    toc-expand: true
+    toc-location: right
 
-website:
-  twitter-card: true
-  open-graph: true
-  repo-actions: [issue]
-  navbar:
-    background: primary
-    search: true
-  sidebar:
-    style: floating
-
-metadata-files: [nbdev.yml, sidebar.yml]
+  pdf:
+    documentclass: scrreprt
+    papersize: A4
+    geometry: 
+      - top=20mm
+      - left=20mm
+      - right=20mm
+      - bottom=25mm
+    fig-width: 9
+    fig-height: 7
+    # mathspec: true
+    include-in-header: 
+      text: |
+        \usepackage{mathtools,amsfonts,dsfont,amsmath,amssymb}
+        \usepackage{lscape}
+        \newcommand{\blandscape}{\begin{landscape}{\tiny}
+        \newcommand{\elandscape}{\end{landscape}}}
+        %
+        % break long lines of code
+        \usepackage{fvextra} 
+        \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}  
+        \DefineVerbatimEnvironment{OutputCode}{Verbatim}{breaklines,commandchars=\\\{\}}
+    block-headings: false
+    link-citations: true
+    number-depth: 2
+    toc-depth: 2

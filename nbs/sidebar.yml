@@ -1,0 +1,24 @@
+website:
+  sidebar:
+    contents:
+      - index.ipynb
+      - 01_Introduction.ipynb
+      - 02.01_DDRLBase.ipynb
+      - 02.02_DDRLSarsa.ipynb
+      - 02.03_DDRLActorCritic.ipynb
+      - 02.04_BiasingMethods.ipynb
+      - 02_Agents.ipynb
+      - 03.01_TwoArmedBandit.ipynb
+      - 03.02_SocialDilemma.ipynb
+      - 03.03_RiskRewardDilemma.ipynb
+      - 03_Environments.ipynb
+      - 04.01_Trajectories.ipynb
+      - 04.02_PhasePlot.ipynb
+      - 04.03_PlottingTools.ipynb
+      - 04_Utilities.ipynb
+      - 05_DiscretizationCalibration.ipynb
+      - 06.01_ExplorationExploitationChallenge.ipynb
+      - 06.02_SocialCoordinationTask.ipynb
+      - 06.03_IntertemporalRiskyChoice.ipynb
+      - 06_Results.ipynb
+      - References.ipynb

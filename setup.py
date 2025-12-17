@@ -24,7 +24,13 @@ statuses = [ '1 - Planning', '2 - Pre-Alpha', '3 - Alpha',
     '4 - Beta', '5 - Production/Stable', '6 - Mature', '7 - Inactive' ]
 py_versions = '3.6 3.7 3.8 3.9 3.10 3.11 3.12'.split()
 
-requirements = shlex.split(cfg.get('requirements', ''))
+# requirements = shlex.split(cfg.get('requirements', ''))
+with open('requirements.txt') as f:
+    requirements = [
+        line.strip() 
+        for line in f 
+        if line.strip() and not line.startswith('#') and not line.startswith('-e')
+    ]
 if cfg.get('pip_requirements'): requirements += shlex.split(cfg.get('pip_requirements', ''))
 min_python = cfg['min_python']
 lic = licenses.get(cfg['license'].lower(), (cfg['license'], None))

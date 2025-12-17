@@ -3,7 +3,7 @@ project:
 
 website:
   title: "pyDDRL"
-  site-url: "https://clembergerot.github.io/pyDDRL"
+  site-url: "gh-pages/pyDDRL"
   description: "Distributional Deterministic Reinforcement Learning"
   repo-branch: main
   repo-url: "https://github.com/clembergerot/pyDDRL"
