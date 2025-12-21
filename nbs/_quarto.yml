@@ -14,8 +14,6 @@ book:
   repo-url: https://github.com/clembergerot/pyDDRL
   chapters:
     - index.ipynb
-    - text: Introduction  
-      href: 01_Introduction.ipynb
     - part: 02_Agents.ipynb
       chapters: 
         - 02.01_DDRLBase.ipynb
