@@ -7,7 +7,7 @@ bibliography: DDRL.bib
 
 book:
   title: Deterministic Distributional Reinforcement Learning
-  author: Clemence Bergerot, Wolfram Barfuss
+  author: Clemence Bergerot, Pawel Romanczuk, Wolfram Barfuss
   date: last-modified
   date-format: long
   downloads: [pdf]

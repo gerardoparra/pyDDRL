@@ -2,7 +2,6 @@ website:
   sidebar:
     contents:
       - index.ipynb
-      - 01_Introduction.ipynb
       - 02.01_DDRLBase.ipynb
       - 02.02_DDRLSarsa.ipynb
       - 02.03_DDRLActorCritic.ipynb
