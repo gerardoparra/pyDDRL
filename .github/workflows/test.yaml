@@ -1,12 +1,41 @@
 name: CI
-on:  [workflow_dispatch, pull_request, push]
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+env:
+  PIP_CONSTRAINT: /tmp/constraints.txt
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    steps: 
-      - name: Pin setuptools before composite action
-          run: |
-            echo "setuptools<81" > /tmp/constraints.txt
-            python -m pip install --upgrade pip "setuptools<81" wheel
-      - uses: answerdotai/workflows/nbdev3-ci@master
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Constrain setuptools and install dependencies
+        run: |
+          echo "setuptools<81" > /tmp/constraints.txt
+          python -m pip install --upgrade pip "setuptools<81" wheel
+          pip install -q "nbdev>=3.3.10"
+          # If pyCRLD still fails in build isolation, install it first with --no-build-isolation:
+          # pip install -q --no-build-isolation "pyCRLD @ git+https://github.com/OWNER/pyCRLD.git"
+          pip install -q -e '.[dev]' --extra-index-url https://download.pytorch.org/whl/cpu
+
+      - name: Export and verify clean git status
+        run: |
+          nbdev-export
+          git status --porcelain
+
+      - name: Run nbdev tests
+        run: |
+          nbdev-test
