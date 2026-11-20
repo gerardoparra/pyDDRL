@@ -2,8 +2,8 @@
 
 d = { 'settings': { 'branch': 'main',
                 'doc_baseurl': '/pyDDRL',
-                'doc_host': 'https://clembergerot.github.io',
-                'git_url': 'https://github.com/clembergerot/pyDDRL',
+                'doc_host': 'https://gerardoparra.github.io',
+                'git_url': 'https://github.com/gerardoparra/pyDDRL',
                 'lib_path': 'pyDDRL'},
   'syms': { 'pyDDRL.Agents.DDRLActorCritic': { 'pyDDRL.Agents.DDRLActorCritic.DDRLActorCritic': ( '02.03_ddrlactorcritic.html#ddrlactorcritic',
                                                                                                   'pyDDRL/Agents/DDRLActorCritic.py'),

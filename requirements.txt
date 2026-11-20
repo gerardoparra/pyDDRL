@@ -86,7 +86,7 @@ ptyprocess==0.7.0
 pure_eval==0.2.3
 pycparser==2.23
 pyCRLD @ git+https://github.com/wbarfuss/pyCRLD.git@a370d514ed99d91297d58ad3aaff28f4afd7f073
--e git+https://github.com/clembergerot/pyDDRL.git@518b149b0a6afce5ca50f1499a53771265db1bb0#egg=pyDDRL
+-e git+https://github.com/gerardoparra/pyDDRL.git
 pyDOE==0.3.8
 Pygments==2.19.2
 pyparsing==3.2.5

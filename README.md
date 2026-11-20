@@ -7,15 +7,15 @@ The package and notebooks associated with this documentation can be found on [th
 To do this, clone the repository:
 
 ```sh
-git clone https://github.com/clembergerot/pyDDRL
+git clone https://github.com/gerardoparra/pyDDRL
 cd pyDDRL
 ```
 
 Then set up the virtual environment:
 
 ```sh
-python -m venv venv
-source venv/bin/activate
+python -m venv .venv
+source .venv/bin/activate
 ```
 
 ...and install the package in editable mode:

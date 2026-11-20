@@ -11,7 +11,7 @@ package:
 
 website:
   title: "pyDDRL"
-  site-url: "https://clembergerot.github.io/pyDDRL"
+  site-url: "https://gerardoparra.github.io/pyDDRL"
   description: "Distributional Deterministic Reinforcement Learning"
   repo-branch: main
-  repo-url: "https://github.com/clembergerot/pyDDRL"
+  repo-url: "https://github.com/gerardoparra/pyDDRL"
