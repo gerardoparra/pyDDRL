@@ -2,7 +2,7 @@ Deterministic Distributional Reinforcement Learning (DDRL) combines deterministi
 
 The present package and supplementary information were created thanks to [nbdev](https://nbdev.fast.ai/) and [quarto](https://quarto.org/). This ensures all the simulations are fully reproducible.  
 
-The package and notebooks associated with this documentation can be found on [this Github repo](https://github.com/clembergerot/pyDDRL). There, you can download the package and run the notebooks in order to reproduce our simulations.
+The package and notebooks associated with this documentation can be found on [this Github repo](https://github.com/gerardoparra/pyDDRL). There, you can download the package and run the notebooks in order to reproduce our simulations.
 
 To do this, clone the repository:
 
