@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.11.9">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>14&nbsp; Intertemporal risky choice problem {#sec-intertemporal} – Deterministic Distributional Reinforcement Learning</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./references.html" rel="next">
+<link href="./06.02_socialcoordinationtask.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/scrollable-regions/scrollable-regions.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-8141c31b12be1f67465bed69e2110aa9.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="floating quarto-light"><a id="quarto-skip-link" class="visually-hidden-focusable" href="#quarto-document-content">Skip to main content</a>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav" aria-label="Toolbar">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="Breadcrumbs"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./results.html">Results {#sec-results}</a></li><li class="breadcrumb-item"><a href="./06.03_intertemporalriskychoice.html"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Intertemporal risky choice problem {#sec-intertemporal}</span></a></li></ol></nav>
+        <a class="flex-grow-1" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto" aria-label="Site">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Deterministic Distributional Reinforcement Learning</a> 
+        <div class="sidebar-tools-main">
+    <a href="https://github.com/clembergerot/pyDDRL" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
+    <a href="./Deterministic-Distributional-Reinforcement-Learning.pdf" title="Download PDF" class="quarto-navigation-tool px-1" aria-label="Download PDF"><i class="bi bi-file-pdf"></i></a>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Introduction {#sec-introduction}</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text" id="quarto-sidebar-section-1-label">Agents {#sec-agents}</span></a>
+            <button type="button" class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-controls="quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section: Agents {#sec-agents}">
+              <i class="bi bi-chevron-right ms-2" aria-hidden="true"></i>
+            </button> 
+      </div>
+      <ul id="quarto-sidebar-section-1" aria-labelledby="quarto-sidebar-section-1-label" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02.01_ddrlbase.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">DDRL Base {#sec-ddrlbase}</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02.02_ddrlsarsa.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">DDRL SARSA {#sec-ddrlsarsa}</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02.03_ddrlactorcritic.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">DDRL Actor-Critic {#sec-ddrlac}</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02.04_biasingmethods.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Biasing methods {#sec-biasing-methods}</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./environments.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text" id="quarto-sidebar-section-2-label">Environments {#sec-environments}</span></a>
+            <button type="button" class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-controls="quarto-sidebar-section-2" aria-expanded="true" aria-label="Toggle section: Environments {#sec-environments}">
+              <i class="bi bi-chevron-right ms-2" aria-hidden="true"></i>
+            </button> 
+      </div>
+      <ul id="quarto-sidebar-section-2" aria-labelledby="quarto-sidebar-section-2-label" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03.01_twoarmedbandit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Two-armed bandit {#sec-twoarmedbandit}</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03.02_socialdilemma.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Social dilemma {#sec-socialdilemma}</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03.03_riskrewarddilemma.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Risk-reward dilemma {#sec-rrdilemma}</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./utilities.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text" id="quarto-sidebar-section-3-label">Utilities {#sec-utilities}</span></a>
+            <button type="button" class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-controls="quarto-sidebar-section-3" aria-expanded="true" aria-label="Toggle section: Utilities {#sec-utilities}">
+              <i class="bi bi-chevron-right ms-2" aria-hidden="true"></i>
+            </button> 
+      </div>
+      <ul id="quarto-sidebar-section-3" aria-labelledby="quarto-sidebar-section-3-label" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04.01_trajectories.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Trajectories {#sec-trajectories}</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04.02_phaseplot.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Phase plot {#sec-phaseplot}</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04.03_plottingtools.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Plotting tools {#sec-plottingtools}</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <span class="sidebar-item-text sidebar-link text-start">
+ <span class="menu-text">Discretization calibration {#sec-calibration}</span></span>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./results.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text" id="quarto-sidebar-section-5-label">Results {#sec-results}</span></a>
+            <button type="button" class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-controls="quarto-sidebar-section-5" aria-expanded="true" aria-label="Toggle section: Results {#sec-results}">
+              <i class="bi bi-chevron-right ms-2" aria-hidden="true"></i>
+            </button> 
+      </div>
+      <ul id="quarto-sidebar-section-5" aria-labelledby="quarto-sidebar-section-5-label" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./06.01_explorationexploitationchallenge.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Exploration-Exploitation Challenge {#sec-exploration}</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./06.02_socialcoordinationtask.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Social coordination task {#sec-socialcoord}</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./06.03_intertemporalriskychoice.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Intertemporal risky choice problem {#sec-intertemporal}</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">References {.unnumbered}</span></span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" aria-labelledby="toc-title" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#sanity-tests" id="toc-sanity-tests" class="nav-link active" data-scroll-target="#sanity-tests"><span class="header-section-number">14.1</span> Sanity tests</a></li>
+  <li><a href="#influence-of-optimismpessimism" id="toc-influence-of-optimismpessimism" class="nav-link" data-scroll-target="#influence-of-optimismpessimism"><span class="header-section-number">14.2</span> Influence of optimism/pessimism</a></li>
+  <li><a href="#bistability-regimes-and-individual-dilemma" id="toc-bistability-regimes-and-individual-dilemma" class="nav-link" data-scroll-target="#bistability-regimes-and-individual-dilemma"><span class="header-section-number">14.3</span> Bistability regimes and individual dilemma</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content" tabindex="-1">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="Breadcrumbs"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./results.html">Results {#sec-results}</a></li><li class="breadcrumb-item"><a href="./06.03_intertemporalriskychoice.html"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Intertemporal risky choice problem {#sec-intertemporal}</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Intertemporal risky choice problem {#sec-intertemporal}</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<div id="638a2c72" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># general imports</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> norm</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> jax.numpy <span class="im">as</span> jnp</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> jax <span class="im">import</span> jit</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> functools <span class="im">import</span> partial</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib <span class="im">as</span> mpl</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="1753d473" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># pyCRLD imports</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Agents</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pyCRLD.Agents.Base <span class="im">import</span> abase</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pyCRLD.Agents.StrategyActorCritic <span class="im">import</span> stratAC</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Environment</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pyDDRL.Environments.RiskRewardDilemma <span class="im">import</span> RiskRewardDilemma</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Utilities</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pyCRLD.Utils.Helpers <span class="im">import</span> <span class="op">*</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pyCRLD.Utils <span class="im">import</span> FlowPlot <span class="im">as</span> fp</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pyDDRL.Utils.Trajectories1D <span class="im">import</span> trajectories_1D </span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pyDDRL.Utils.PhasePlot <span class="im">import</span> phaseplot, _data_to_plot, _strategies, _dXisa_s</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pyDDRL.Utils.PlottingTools <span class="im">import</span> <span class="op">*</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="fd835f1d" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># DDRL imports</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pyDDRL.Agents.DDRLBase <span class="im">import</span> DDRLBase</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pyDDRL.Agents.DDRLActorCritic <span class="im">import</span> DDRLActorCritic</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Then, we define the environment:</p>
+<div id="fb57cadb" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define environment</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>env <span class="op">=</span> RiskRewardDilemma(pc<span class="op">=</span><span class="fl">0.2</span>, pr<span class="op">=</span><span class="fl">0.1</span>, rc<span class="op">=</span><span class="fl">0.5</span>, rr<span class="op">=</span><span class="dv">1</span>, rd<span class="op">=</span><span class="dv">0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>In this section, we use Actor-Critic agents (defined in Section <span class="quarto-unresolved-ref">?sec-ddrlac</span> ). The reason we use such agents is that, unlike SARSA agents, they have no exploratory parameter (such as the inverse temperature <span class="math inline">\(\beta\)</span>). Therefore, we can investigate the effects of optimism and pessimism on the Actor-Critic agents’ trajectories towards a safe or risky strategy, without considering the effects of the heuristics on exploration in the degraded state.</p>
+<section id="sanity-tests" class="level2" data-number="14.1">
+<h2 data-number="14.1" class="anchored" data-anchor-id="sanity-tests"><span class="header-section-number">14.1</span> Sanity tests</h2>
+<p>First, we carry out sanity tests in order to check that DDRLActorCritic agents yield the same flow plots as a regular AC agent. We compare different DDRL biasing methods in order to choose the most appropriate. To this end, we compare DDRLActorCritic agents and regular ActorCritic agents across 3 values of the discount factor <span class="math inline">\(\gamma\)</span>: <span class="math inline">\(\gamma = 0\)</span>, <span class="math inline">\(\gamma = 0.4\)</span>, and <span class="math inline">\(\gamma = 0.9\)</span>. First, we create neutral DDRLActorCritic agents which take the mean of their V-return distribution as their value estimate.</p>
+<div id="f13253b1" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Values of gamma</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>gammas <span class="op">=</span> [<span class="fl">0.</span>, <span class="fl">0.4</span>, <span class="fl">0.9</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>In Section <span class="quarto-unresolved-ref">?sec-calibration</span> , we found that the discretization sigma that yields the minimal error is <span class="math inline">\(\sigma=0.05\)</span> for <span class="math inline">\(\gamma=0.4\)</span>, and <span class="math inline">\(\sigma=0.03\)</span> for <span class="math inline">\(\gamma=0.9\)</span>. For these sanity tests, we use <span class="math inline">\(\sigma=0.05\)</span>, because it does not increase the error when <span class="math inline">\(\gamma=0.9\)</span> by much.</p>
+<div id="1f201888" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define agents to compare</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>aeis_reg <span class="op">=</span> []  <span class="co"># regular SARSA agents</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>aeis_ddrl <span class="op">=</span> []  <span class="co"># DDRLSarsa agents</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, gamma <span class="kw">in</span> <span class="bu">enumerate</span>(gammas):</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    aei_reg <span class="op">=</span> stratAC(env<span class="op">=</span>env, learning_rates<span class="op">=</span><span class="fl">0.1</span>, discount_factors<span class="op">=</span>gamma, </span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>                      use_prefactor<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    aeis_reg.append(aei_reg)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    aei_ddrl <span class="op">=</span> DDRLActorCritic(env, nr_reward_bins<span class="op">=</span><span class="dv">29</span>, discretization_sigma<span class="op">=</span><span class="fl">0.05</span>, </span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>                               learning_rates<span class="op">=</span><span class="fl">0.1</span>, discount_factors<span class="op">=</span>gamma, </span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>                               Rmin<span class="op">=</span><span class="dv">0</span>, Rmax<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>                               method<span class="op">=</span><span class="st">"mean"</span>, use_prefactor<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    aeis_ddrl.append(aei_ddrl)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>WARNING:2025-12-21 19:48:20,771:jax._src.xla_bridge:794: An NVIDIA GPU may be present on this machine, but a CUDA-enabled jaxlib is not installed. Falling back to cpu.</code></pre>
+</div>
+</div>
+<p>Now, we can visualize the flowplots:</p>
+<div id="cell-fig-rr-sanitytests-mean" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Phase space items to plot along the x- and y- axes</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> ([<span class="dv">0</span>], [<span class="dv">0</span>], [<span class="dv">0</span>])  <span class="co"># prosperous state</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> ([<span class="dv">0</span>], [<span class="dv">1</span>], [<span class="dv">0</span>])  <span class="co"># degraded state</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co"># For trajectories</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>Xinits <span class="op">=</span> [np.ones((<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">2</span>)) <span class="op">*</span> <span class="fl">0.5</span>]  <span class="co"># initial strategy</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>cols <span class="op">=</span> [<span class="st">"orange"</span>]  <span class="co"># trajectory color</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Decorations</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>titles <span class="op">=</span> [<span class="vs">r'</span><span class="dv">$</span><span class="er">\</span><span class="vs">gamma = 0</span><span class="dv">.</span><span class="vs">0</span><span class="dv">$</span><span class="vs">'</span>, <span class="vs">r'</span><span class="dv">$</span><span class="er">\</span><span class="vs">gamma = 0</span><span class="dv">.</span><span class="vs">4</span><span class="dv">$</span><span class="vs">'</span>, <span class="vs">r'</span><span class="dv">$</span><span class="er">\</span><span class="vs">gamma = 0</span><span class="dv">.</span><span class="vs">9</span><span class="dv">$</span><span class="vs">'</span>]</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>xlabel <span class="op">=</span> <span class="st">"prob. safe action in prosp. state"</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>ylabel <span class="op">=</span> <span class="st">"prob. safe action in deg. state"</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Figure and axes</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>fig, (ax1, ax2, ax3) <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="fl">3.2</span> <span class="op">*</span> <span class="fl">3.8</span>, <span class="fl">3.8</span>))</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>axes <span class="op">=</span> [ax1, ax2, ax3]</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot flow plots and trajectories</span></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>plot_3flowplots(aeis_reg, x, y, NrRandom<span class="op">=</span><span class="dv">16</span>, cmap<span class="op">=</span><span class="st">'Reds'</span>, axes<span class="op">=</span>axes)</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>plot_3flowplots(aeis_ddrl, x, y, NrRandom<span class="op">=</span><span class="dv">16</span>, cmap<span class="op">=</span><span class="st">'Blues'</span>, decorate<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>                titles<span class="op">=</span>titles, xlabel<span class="op">=</span>xlabel, ylabel<span class="op">=</span>ylabel,</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>                Xinits<span class="op">=</span>Xinits, cols<span class="op">=</span>cols, axes<span class="op">=</span>axes)</span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a><span class="co"># Additional decorations</span></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>ax3.plot([], [], color<span class="op">=</span><span class="st">'red'</span>, label<span class="op">=</span><span class="st">'detAC'</span>)</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>ax3.plot([], [], color<span class="op">=</span><span class="st">'blue'</span>, label<span class="op">=</span><span class="st">'DDRL AC'</span>)</span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>ax3.legend(bbox_to_anchor<span class="op">=</span>(<span class="fl">1.01</span>, <span class="fl">1.01</span>))</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a><span class="co"># Save the figure</span></span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>plt.savefig(<span class="st">'../figs/RRSanityTestMean.tiff'</span>, dpi<span class="op">=</span><span class="dv">300</span>, bbox_inches<span class="op">=</span><span class="st">'tight'</span>, <span class="bu">format</span><span class="op">=</span><span class="st">'tiff'</span>)</span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="fig-rr-sanitytests-mean" class="cell-output cell-output-display quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-rr-sanitytests-mean-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<pre><code>&lt;Figure size 3648x1140 with 3 Axes&gt;</code></pre>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rr-sanitytests-mean-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;14.1: Comparison between a distributional and a non-distributional agent in a risk-reward dilemma, for several values of the discount factor. For the distributional agent, the mean of the V-return distribution was taken.
+</figcaption>
+</figure>
+</div>
+</div>
+<p>Now, we compare the regular AC agents with an expectile-DDRLActorCritic agent (<span class="math inline">\(\tau = 0.5\)</span>, which should be equivalent with taking the mean of the V-return distribution). Defining the expectile agents:</p>
+<div id="af0c39ae" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define agents to compare</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>aeis_ddrl <span class="op">=</span> []  <span class="co"># DDRLSarsa agents</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, gamma <span class="kw">in</span> <span class="bu">enumerate</span>(gammas):</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    aei_ddrl <span class="op">=</span> DDRLActorCritic(env, nr_reward_bins<span class="op">=</span><span class="dv">29</span>, discretization_sigma<span class="op">=</span><span class="fl">0.05</span>, </span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>                               learning_rates<span class="op">=</span><span class="fl">0.1</span>, discount_factors<span class="op">=</span>gamma, </span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>                               Rmin<span class="op">=</span><span class="dv">0</span>, Rmax<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>                               method<span class="op">=</span><span class="st">"expectile"</span>, tau<span class="op">=</span><span class="fl">0.5</span>, use_prefactor<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    aeis_ddrl.append(aei_ddrl)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>And visualizing the flowplots:</p>
+<div id="cell-fig-rr-sanitytests-expectile" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Figure and axes</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>fig, (ax1, ax2, ax3) <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="fl">3.2</span> <span class="op">*</span> <span class="fl">3.8</span>, <span class="fl">3.8</span>))</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>axes <span class="op">=</span> [ax1, ax2, ax3]</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot flow plots and trajectories</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>plot_3flowplots(aeis_reg, x, y, NrRandom<span class="op">=</span><span class="dv">16</span>, cmap<span class="op">=</span><span class="st">'Reds'</span>, axes<span class="op">=</span>axes)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>plot_3flowplots(aeis_ddrl, x, y, NrRandom<span class="op">=</span><span class="dv">16</span>, cmap<span class="op">=</span><span class="st">'Blues'</span>, decorate<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>                titles<span class="op">=</span>titles, xlabel<span class="op">=</span>xlabel, ylabel<span class="op">=</span>ylabel,</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>                Xinits<span class="op">=</span>Xinits, cols<span class="op">=</span>cols, axes<span class="op">=</span>axes)</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Additional decorations</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>ax3.plot([], [], color<span class="op">=</span><span class="st">'red'</span>, label<span class="op">=</span><span class="st">'detAC'</span>)</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>ax3.plot([], [], color<span class="op">=</span><span class="st">'blue'</span>, label<span class="op">=</span><span class="st">'DDRL AC'</span>)</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>ax3.legend(bbox_to_anchor<span class="op">=</span>(<span class="fl">1.01</span>, <span class="fl">1.01</span>))</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Save the figure</span></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>plt.savefig(<span class="st">'../figs/RRSanityTestExpectile.tiff'</span>, dpi<span class="op">=</span><span class="dv">300</span>, bbox_inches<span class="op">=</span><span class="st">'tight'</span>, <span class="bu">format</span><span class="op">=</span><span class="st">'tiff'</span>)</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="fig-rr-sanitytests-expectile" class="cell-output cell-output-display quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-rr-sanitytests-expectile-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<pre><code>&lt;Figure size 3648x1140 with 3 Axes&gt;</code></pre>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rr-sanitytests-expectile-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;14.2: Comparison between a distributional and a non-distributional agent in a risk-reward dilemma, for several values of the discount factor. For the distributional agent, the expectile method was used.
+</figcaption>
+</figure>
+</div>
+</div>
+<p>Finally, we compare the regular AC agents with a weights-ActorCritic agent (<span class="math inline">\(w_U = 1\)</span>, which should be equivalent with taking the mean of the V-return distribution). Defining the weights agents:</p>
+<div id="554194fe" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define agents to compare</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>aeis_ddrl <span class="op">=</span> []  <span class="co"># DDRLSarsa agents</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, gamma <span class="kw">in</span> <span class="bu">enumerate</span>(gammas):</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    aei_ddrl <span class="op">=</span> DDRLActorCritic(env, nr_reward_bins<span class="op">=</span><span class="dv">29</span>, discretization_sigma<span class="op">=</span><span class="fl">0.05</span>, </span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>                               learning_rates<span class="op">=</span><span class="fl">0.1</span>, discount_factors<span class="op">=</span>gamma, </span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>                               Rmin<span class="op">=</span><span class="dv">0</span>, Rmax<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>                               method<span class="op">=</span><span class="st">"weights"</span>, wU<span class="op">=</span><span class="fl">1.</span>, use_prefactor<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    aeis_ddrl.append(aei_ddrl)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Now visualizing:</p>
+<div id="cell-fig-rr-sanitytests-weights" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Figure and axes</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>fig, (ax1, ax2, ax3) <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="fl">3.2</span> <span class="op">*</span> <span class="fl">3.8</span>, <span class="fl">3.8</span>))</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>axes <span class="op">=</span> [ax1, ax2, ax3]</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot flow plots and trajectories</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>plot_3flowplots(aeis_reg, x, y, NrRandom<span class="op">=</span><span class="dv">16</span>, cmap<span class="op">=</span><span class="st">'Reds'</span>, axes<span class="op">=</span>axes)</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>plot_3flowplots(aeis_ddrl, x, y, NrRandom<span class="op">=</span><span class="dv">16</span>, cmap<span class="op">=</span><span class="st">'Blues'</span>, decorate<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>                titles<span class="op">=</span>titles, xlabel<span class="op">=</span>xlabel, ylabel<span class="op">=</span>ylabel,</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>                Xinits<span class="op">=</span>Xinits, cols<span class="op">=</span>cols, axes<span class="op">=</span>axes)</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Additional decorations</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>ax3.plot([], [], color<span class="op">=</span><span class="st">'red'</span>, label<span class="op">=</span><span class="st">'detAC'</span>)</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>ax3.plot([], [], color<span class="op">=</span><span class="st">'blue'</span>, label<span class="op">=</span><span class="st">'DDRL AC'</span>)</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>ax3.legend(bbox_to_anchor<span class="op">=</span>(<span class="fl">1.01</span>, <span class="fl">1.01</span>))</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Save the figure</span></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>plt.savefig(<span class="st">'../figs/RRSanityTestWeights.tiff'</span>, dpi<span class="op">=</span><span class="dv">300</span>, bbox_inches<span class="op">=</span><span class="st">'tight'</span>, <span class="bu">format</span><span class="op">=</span><span class="st">'tiff'</span>)</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="fig-rr-sanitytests-weights" class="cell-output cell-output-display quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-rr-sanitytests-weights-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<pre><code>&lt;Figure size 3648x1140 with 3 Axes&gt;</code></pre>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rr-sanitytests-weights-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;14.3: Comparison between a distributional and a non-distributional agent in a risk-reward dilemma, for several values of the discount factor. For the distributional agent, the weights method was used.
+</figcaption>
+</figure>
+</div>
+</div>
+</section>
+<section id="influence-of-optimismpessimism" class="level2" data-number="14.2">
+<h2 data-number="14.2" class="anchored" data-anchor-id="influence-of-optimismpessimism"><span class="header-section-number">14.2</span> Influence of optimism/pessimism</h2>
+<p>Since the flowplots obtained with the weights method are closest to the regular AC agents’ flowplots, we use this method to implement optimism/pessimism. We study the influence of optimism for a low discount factor <span class="math inline">\(\gamma = 0.4\)</span>, and for a high discount factor <span class="math inline">\(\gamma = 0.9\)</span>. We assume that, in the degraded state, the agent always chooses the safe action (since it is the only one which can take it back to the prosperous state).</p>
+<div id="de7163ca" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co">#  Levels of optimism/pessimism (defined by upper weight values w_U)</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>weights <span class="op">=</span> np.array([<span class="fl">0.1</span>, <span class="fl">0.2</span>, <span class="fl">0.4</span>, <span class="fl">0.8</span>, <span class="fl">1.</span>, <span class="fl">2.</span>, <span class="fl">4.</span>, <span class="fl">8.</span>, <span class="fl">10.</span>])</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Phase space items to plot along the x-axis</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> ([<span class="dv">0</span>], [<span class="dv">0</span>], [<span class="dv">0</span>]) </span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Range and resolution</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> np.linspace(<span class="dv">0</span>, <span class="fl">1.</span>, <span class="dv">21</span>)</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>res[<span class="dv">0</span>] <span class="op">=</span> <span class="fl">0.0001</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>res[<span class="op">-</span><span class="dv">1</span>] <span class="op">=</span> <span class="fl">0.9999</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Value of X^{0,1,0}</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>otherXs <span class="op">=</span> np.ones((<span class="bu">len</span>(res)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>For a low discount factor <span class="math inline">\(\gamma = 0.4\)</span>:</p>
+<div id="cell-fig-rr-phaseplot-low" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot and save - gamma = 0.4</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>compare_levels(env, weights, gamma<span class="op">=</span><span class="fl">0.4</span>, beta<span class="op">=</span><span class="dv">50</span>, Rmin<span class="op">=</span><span class="dv">0</span>, Rmax<span class="op">=</span><span class="dv">1</span>, xinds<span class="op">=</span>x, </span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>               res<span class="op">=</span>res, algo<span class="op">=</span><span class="st">'AC'</span>, nrb<span class="op">=</span><span class="dv">29</span>, discsig<span class="op">=</span><span class="fl">0.05</span>, </span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>               traj_len<span class="op">=</span><span class="dv">800</span>, otherXs<span class="op">=</span>otherXs, cmap<span class="op">=</span><span class="st">'coolwarm'</span>, </span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>               save<span class="op">=</span><span class="va">True</span>, savename<span class="op">=</span><span class="st">'../figs/RRPhasePlotGamma04.tiff'</span>)</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="fig-rr-phaseplot-low" class="cell-output cell-output-display quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-rr-phaseplot-low-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<pre><code>&lt;Figure size 5130x1140 with 3 Axes&gt;</code></pre>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rr-phaseplot-low-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;14.4: Phase plot, strategy plot and reward plot of an agent playing a risk-reward dilemma with low discount factor. Different levels of optimism/pessimism are compared.
+</figcaption>
+</figure>
+</div>
+</div>
+<p>For a high discount factor <span class="math inline">\(\gamma=0.9\)</span>:</p>
+<div id="cell-fig-rr-phaseplot-high" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot and save - gamma = 0.9</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>compare_levels(env, weights, gamma<span class="op">=</span><span class="fl">0.9</span>, beta<span class="op">=</span><span class="fl">50.</span>, Rmin<span class="op">=</span><span class="dv">0</span>, Rmax<span class="op">=</span><span class="dv">1</span>, </span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>               xinds<span class="op">=</span>x, algo<span class="op">=</span><span class="st">'AC'</span>, res<span class="op">=</span>res, nrb<span class="op">=</span><span class="dv">29</span>, discsig<span class="op">=</span><span class="fl">0.05</span>, </span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>               traj_len<span class="op">=</span><span class="dv">1800</span>, otherXs<span class="op">=</span>otherXs, cmap<span class="op">=</span><span class="st">'coolwarm'</span>, </span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>               save<span class="op">=</span><span class="va">True</span>, savename<span class="op">=</span><span class="st">'../figs/RRPhasePlotGamma09.tiff'</span>)</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="fig-rr-phaseplot-high" class="cell-output cell-output-display quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-rr-phaseplot-high-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<pre><code>&lt;Figure size 5130x1140 with 3 Axes&gt;</code></pre>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rr-phaseplot-high-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;14.5: Phase plot, strategy plot and reward plot of an agent playing a risk-reward dilemma with high discount factor. Different levels of optimism/pessimism are compared.
+</figcaption>
+</figure>
+</div>
+</div>
+<p>We can visualize the impact of optimism/pessimism on the agent’s strategy in both states, by using flowplots. Here, we show flowplots for a pessimistic agent (<span class="math inline">\(w_U = 0.2\)</span>), a neutral agent (<span class="math inline">\(w_U = 1\)</span>), and an optimistic agent (<span class="math inline">\(w_U = 5\)</span>). First, we study how optimism/pessimism impacts the strategy of an agent with low discount factor <span class="math inline">\(\gamma = 0.4\)</span>.</p>
+<div id="db0e6eda" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> ([<span class="dv">0</span>], [<span class="dv">0</span>], [<span class="dv">0</span>])  <span class="co"># prosperous state</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> ([<span class="dv">0</span>], [<span class="dv">1</span>], [<span class="dv">0</span>])  <span class="co"># degraded state</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>w_list <span class="op">=</span> [<span class="fl">0.2</span>, <span class="dv">1</span>, <span class="dv">5</span>]  <span class="co"># list of weights</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="ad8ac5fc" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define agents to compare</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>aeis <span class="op">=</span> [] <span class="co"># DDRLActorCritic agents</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, w <span class="kw">in</span> <span class="bu">enumerate</span>(w_list):</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    aei <span class="op">=</span> DDRLActorCritic(env, nr_reward_bins<span class="op">=</span><span class="dv">29</span>, discretization_sigma<span class="op">=</span><span class="fl">0.05</span>, </span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>                          learning_rates<span class="op">=</span><span class="fl">0.1</span>, discount_factors<span class="op">=</span><span class="fl">0.4</span>, </span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>                          Rmin<span class="op">=</span><span class="dv">0</span>, Rmax<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>                          method<span class="op">=</span><span class="st">"weights"</span>, wU<span class="op">=</span>w, use_prefactor<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>    aeis.append(aei)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="cell-fig-rr-flowplots-low" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># For trajectories</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>Xinits <span class="op">=</span> [np.ones((<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">2</span>)) <span class="op">*</span> <span class="fl">0.5</span>]  <span class="co"># initial strategy</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>cols <span class="op">=</span> [<span class="st">"orange"</span>]  <span class="co"># trajectory color</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Decorations</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>titles <span class="op">=</span> [<span class="vs">r'</span><span class="dv">$</span><span class="vs">w = 0</span><span class="dv">.</span><span class="vs">2</span><span class="dv">$</span><span class="vs">'</span>, <span class="vs">r'</span><span class="dv">$</span><span class="vs">w = 1</span><span class="dv">$</span><span class="vs">'</span>, <span class="vs">r'</span><span class="dv">$</span><span class="vs">w = 5</span><span class="dv">$</span><span class="vs">'</span>]</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>xlabel <span class="op">=</span> <span class="st">"prob. safe action in prosp. state"</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>ylabel <span class="op">=</span> <span class="st">"prob. safe action in deg. state"</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Figure and axes</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>fig, (ax1, ax2, ax3) <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="fl">3.2</span> <span class="op">*</span> <span class="fl">3.8</span>, <span class="fl">3.8</span>))</span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>axes <span class="op">=</span> [ax1, ax2, ax3]</span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot flow plots and trajectories</span></span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>plot_3flowplots(aeis, x, y, NrRandom<span class="op">=</span><span class="dv">16</span>, cmap<span class="op">=</span><span class="st">'Blues'</span>, decorate<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>                titles<span class="op">=</span>titles, xlabel<span class="op">=</span>xlabel, ylabel<span class="op">=</span>ylabel,</span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>                Xinits<span class="op">=</span>Xinits, cols<span class="op">=</span>cols, axes<span class="op">=</span>axes)</span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Save the figure</span></span>
+<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a>plt.savefig(<span class="st">'../figs/RRFlowplotsGamma04.tiff'</span>, dpi<span class="op">=</span><span class="dv">300</span>, bbox_inches<span class="op">=</span><span class="st">'tight'</span>, <span class="bu">format</span><span class="op">=</span><span class="st">'tiff'</span>)</span>
+<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="fig-rr-flowplots-low" class="cell-output cell-output-display quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-rr-flowplots-low-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<pre><code>&lt;Figure size 3648x1140 with 3 Axes&gt;</code></pre>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rr-flowplots-low-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;14.6: Flowplots for an agent playing a risk-reward dilemma with low discount factor. Different levels of optimism/pessimism are compared: pessimistic, neutral and optimistic.
+</figcaption>
+</figure>
+</div>
+</div>
+<p>We then turn to agents with a high discount factor <span class="math inline">\(\gamma=0.9\)</span>.</p>
+<div id="be36fad6" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define agents to compare</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>aeis <span class="op">=</span> [] <span class="co"># DDRLActorCritic agents</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, w <span class="kw">in</span> <span class="bu">enumerate</span>(w_list):</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>    aei <span class="op">=</span> DDRLActorCritic(env, nr_reward_bins<span class="op">=</span><span class="dv">29</span>, discretization_sigma<span class="op">=</span><span class="fl">0.05</span>, </span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>                          learning_rates<span class="op">=</span><span class="fl">0.1</span>, discount_factors<span class="op">=</span><span class="fl">0.9</span>, </span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>                          Rmin<span class="op">=</span><span class="dv">0</span>, Rmax<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>                          method<span class="op">=</span><span class="st">"weights"</span>, wU<span class="op">=</span>w, use_prefactor<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>    aeis.append(aei)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="cell-fig-rr-flowplots-high" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># For trajectories</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>Xinits <span class="op">=</span> [np.ones((<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">2</span>)) <span class="op">*</span> <span class="fl">0.5</span>]  <span class="co"># initial strategy</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>cols <span class="op">=</span> [<span class="st">"orange"</span>]  <span class="co"># trajectory color</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Decorations</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>titles <span class="op">=</span> [<span class="vs">r'</span><span class="dv">$</span><span class="vs">w = 0</span><span class="dv">.</span><span class="vs">2</span><span class="dv">$</span><span class="vs">'</span>, <span class="vs">r'</span><span class="dv">$</span><span class="vs">w = 1</span><span class="dv">$</span><span class="vs">'</span>, <span class="vs">r'</span><span class="dv">$</span><span class="vs">w = 5</span><span class="dv">$</span><span class="vs">'</span>]</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>xlabel <span class="op">=</span> <span class="st">"prob. safe action in prosp. state"</span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>ylabel <span class="op">=</span> <span class="st">"prob. safe action in deg. state"</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Figure and axes</span></span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>fig, (ax1, ax2, ax3) <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="fl">3.2</span> <span class="op">*</span> <span class="fl">3.8</span>, <span class="fl">3.8</span>))</span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>axes <span class="op">=</span> [ax1, ax2, ax3]</span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot flow plots and trajectories</span></span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>plot_3flowplots(aeis, x, y, NrRandom<span class="op">=</span><span class="dv">16</span>, cmap<span class="op">=</span><span class="st">'Blues'</span>, decorate<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>                titles<span class="op">=</span>titles, xlabel<span class="op">=</span>xlabel, ylabel<span class="op">=</span>ylabel,</span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>                Xinits<span class="op">=</span>Xinits, cols<span class="op">=</span>cols, axes<span class="op">=</span>axes)</span>
+<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Save the figure</span></span>
+<span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a>plt.savefig(<span class="st">'../figs/RRFlowplotsGamma09.tiff'</span>, dpi<span class="op">=</span><span class="dv">300</span>, bbox_inches<span class="op">=</span><span class="st">'tight'</span>, <span class="bu">format</span><span class="op">=</span><span class="st">'tiff'</span>)</span>
+<span id="cb26-21"><a href="#cb26-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-22"><a href="#cb26-22" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="fig-rr-flowplots-high" class="cell-output cell-output-display quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-rr-flowplots-high-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<pre><code>&lt;Figure size 3648x1140 with 3 Axes&gt;</code></pre>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rr-flowplots-high-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;14.7: Flowplots for an agent playing a risk-reward dilemma with high discount factor. Different levels of optimism/pessimism are compared: pessimistic, neutral and optimistic.
+</figcaption>
+</figure>
+</div>
+</div>
+</section>
+<section id="bistability-regimes-and-individual-dilemma" class="level2" data-number="14.3">
+<h2 data-number="14.3" class="anchored" data-anchor-id="bistability-regimes-and-individual-dilemma"><span class="header-section-number">14.3</span> Bistability regimes and individual dilemma</h2>
+<p>In this section, we dive deeper into the particularities of our distributional model when combined to intertemporal choice. Indeed, <a href="#fig-rr-flowplots-low" class="quarto-xref">Figure&nbsp;<span>14.6</span></a> shows the emergence of a bistability regime for distributional agents when <span class="math inline">\(\gamma = 0.4\)</span> and <span class="math inline">\(w=0.2\)</span>. In fact, we show that a bistability regime emerges even for neutral (<span class="math inline">\(w = 1\)</span>) distributional agents, whereas neutral, non-distributional agents, do not exhibit bistability. This can be visualized in the Figure below:</p>
+<div id="3f571ce8" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Discount factors</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>gammas <span class="op">=</span> np.array([<span class="fl">0.80</span>, <span class="fl">0.84</span>, <span class="fl">0.88</span>, <span class="fl">0.92</span>, <span class="fl">0.96</span>, <span class="fl">0.9999</span>])</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Phase space items to plot along the x-axis</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> ([<span class="dv">0</span>], [<span class="dv">0</span>], [<span class="dv">0</span>]) </span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Range and resolution</span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> np.linspace(<span class="dv">0</span>, <span class="fl">1.</span>, <span class="dv">21</span>)</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>res[<span class="dv">0</span>] <span class="op">=</span> <span class="fl">0.0001</span></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>res[<span class="op">-</span><span class="dv">1</span>] <span class="op">=</span> <span class="fl">0.9999</span></span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Value of X^{0,1,0}</span></span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>otherXs <span class="op">=</span> np.ones((<span class="bu">len</span>(res)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="cell-fig-rr-phaseplots-bistable" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>compare_gammas(env, gammas, Rmin<span class="op">=</span><span class="dv">0</span>, Rmax<span class="op">=</span><span class="dv">1</span>, xinds<span class="op">=</span>x, </span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>               res<span class="op">=</span>res, nrb<span class="op">=</span><span class="dv">29</span>, discsig<span class="op">=</span><span class="fl">0.05</span>, </span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>               traj_len<span class="op">=</span><span class="dv">800</span>, otherXs<span class="op">=</span>otherXs, cmap<span class="op">=</span><span class="st">'viridis'</span>, </span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>               save<span class="op">=</span><span class="va">True</span>, savename<span class="op">=</span><span class="st">'../figs/DistDetPhasePlots.tiff'</span>)</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="fig-rr-phaseplots-bistable" class="cell-output cell-output-display quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-rr-phaseplots-bistable-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<pre><code>&lt;Figure size 3600x1140 with 2 Axes&gt;</code></pre>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rr-phaseplots-bistable-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;14.8: Phaseplots for a distributional vs.&nbsp;non-distributional agent playing a risk-reward dilemma. Different values of the discount factor are compared.
+</figcaption>
+</figure>
+</div>
+</div>
+<p>We can get a broader overview of the different stability regimes for various values of <span class="math inline">\(w\)</span> and <span class="math inline">\(\gamma\)</span>:</p>
+<div id="fe114732" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Safe and risky policies</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>Xsafe <span class="op">=</span> np.array([[[<span class="fl">0.999</span>,<span class="fl">0.001</span>],[<span class="dv">1</span>,<span class="dv">0</span>]]])</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>Xrisk <span class="op">=</span> np.array([[[<span class="fl">0.001</span>,<span class="fl">0.999</span>],[<span class="dv">1</span>,<span class="dv">0</span>]]])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="d067a64e" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>discountfactors <span class="op">=</span> np.linspace(<span class="fl">0.01</span>, <span class="fl">0.99</span>, <span class="dv">21</span>)</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>weights <span class="op">=</span> np.array([<span class="fl">0.1</span>, <span class="fl">0.2</span>, <span class="fl">0.3</span>, <span class="fl">0.4</span>, <span class="fl">0.5</span>, </span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>                    <span class="fl">0.6</span>, <span class="fl">0.7</span>, <span class="fl">0.8</span>,</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>                    <span class="fl">0.9</span>, <span class="fl">1.</span>, <span class="fl">2.</span>, <span class="fl">3.</span>, <span class="fl">4.</span>,</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>                    <span class="fl">5.</span>, <span class="fl">6.</span>, <span class="fl">7.</span>, <span class="fl">8.</span>, <span class="fl">9.</span>, <span class="fl">10.</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="39e6877b" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># risky_optimal_data_container, indicator_stable = fill_containers(env, Xrisk, Xsafe, discountfactors, weights)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="bbaa4a40" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract data</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>df_optimal <span class="op">=</span> pd.read_csv(<span class="st">"../data/risky_optimal.csv"</span>)</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>df_indicator <span class="op">=</span> pd.read_csv(<span class="st">"../data/indicator_stable.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="c612ae1e" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert to numpy array</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>risky_optimal_data_container <span class="op">=</span> df_optimal.to_numpy()[:, <span class="dv">1</span>:]</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>indicator_stable <span class="op">=</span> df_indicator.to_numpy()[:, <span class="dv">1</span>:]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="9bc3603d" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># For drawing the black lines</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>risky_optimal_reverse <span class="op">=</span> np.array(<span class="dv">1</span> <span class="op">-</span> risky_optimal_data_container).astype(<span class="bu">int</span>)</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>risky_bottom <span class="op">=</span> np.<span class="bu">sum</span>(risky_optimal_reverse[:<span class="dv">8</span>, :], axis<span class="op">=</span><span class="dv">0</span>).astype(<span class="bu">int</span>)</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>risky_top <span class="op">=</span> <span class="bu">len</span>(discountfactors) <span class="op">-</span> np.<span class="bu">sum</span>(risky_optimal_reverse[<span class="dv">8</span>:, :], axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>line_bottom <span class="op">=</span> np.repeat(discountfactors[risky_bottom], <span class="dv">3</span>)</span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>line_top <span class="op">=</span> np.repeat(discountfactors[risky_top], <span class="dv">3</span>)</span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>height <span class="op">=</span> discountfactors[<span class="dv">1</span>] <span class="op">-</span> discountfactors[<span class="dv">0</span>]</span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>line_bottom <span class="op">=</span> line_bottom <span class="op">-</span> height<span class="op">/</span><span class="dv">2</span></span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>line_top <span class="op">=</span> line_top <span class="op">-</span> height<span class="op">/</span><span class="dv">2</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="cell-fig-stability-landscape" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib.colors <span class="im">import</span> ListedColormap, BoundaryNorm</span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib.patches <span class="im">import</span> Rectangle</span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>hatches <span class="op">=</span> {<span class="fl">0.</span>: <span class="st">'///'</span>, <span class="fl">1.</span>: <span class="st">"</span><span class="ch">\\\\\\</span><span class="st">"</span>} </span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>labels <span class="op">=</span> {<span class="fl">1.</span>: <span class="vs">r'</span><span class="dv">$</span><span class="vs">V_{risky} &gt; V_{safe}</span><span class="dv">$</span><span class="vs">'</span>, <span class="fl">0.</span>: <span class="vs">r'</span><span class="dv">$</span><span class="vs">V_{safe} </span><span class="er">\</span><span class="vs">geq V_{risky}</span><span class="dv">$</span><span class="vs">'</span>}</span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>x_vals <span class="op">=</span> weights</span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>y_vals <span class="op">=</span> discountfactors</span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>nx <span class="op">=</span> <span class="bu">len</span>(x_vals)</span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>ny <span class="op">=</span> <span class="bu">len</span>(y_vals)</span>
+<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-13"><a href="#cb37-13" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>,<span class="dv">1</span>, figsize<span class="op">=</span>(<span class="dv">7</span>,<span class="dv">7</span>))</span>
+<span id="cb37-14"><a href="#cb37-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-15"><a href="#cb37-15" aria-hidden="true" tabindex="-1"></a>vals <span class="op">=</span> {<span class="dv">10</span>}</span>
+<span id="cb37-16"><a href="#cb37-16" aria-hidden="true" tabindex="-1"></a>x_points <span class="op">=</span> np.zeros((<span class="bu">len</span>(weights)<span class="op">*</span><span class="dv">3</span>))</span>
+<span id="cb37-17"><a href="#cb37-17" aria-hidden="true" tabindex="-1"></a>x_points[<span class="dv">0</span>] <span class="op">=</span> <span class="fl">0.09</span></span>
+<span id="cb37-18"><a href="#cb37-18" aria-hidden="true" tabindex="-1"></a>x_points[<span class="op">-</span><span class="dv">1</span>] <span class="op">=</span> <span class="fl">10.5</span></span>
+<span id="cb37-19"><a href="#cb37-19" aria-hidden="true" tabindex="-1"></a>x_points[<span class="dv">1</span>::<span class="dv">3</span>] <span class="op">=</span> weights</span>
+<span id="cb37-20"><a href="#cb37-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-21"><a href="#cb37-21" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i, j), val <span class="kw">in</span> np.ndenumerate(risky_optimal_data_container):</span>
+<span id="cb37-22"><a href="#cb37-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> j <span class="op">&lt;</span> nx <span class="op">-</span> <span class="dv">1</span>:</span>
+<span id="cb37-23"><a href="#cb37-23" aria-hidden="true" tabindex="-1"></a>        width <span class="op">=</span> x_vals[j<span class="op">+</span><span class="dv">1</span>] <span class="op">-</span> x_vals[j]</span>
+<span id="cb37-24"><a href="#cb37-24" aria-hidden="true" tabindex="-1"></a>        xp1 <span class="op">=</span> x_vals[j<span class="op">+</span><span class="dv">1</span>]<span class="op">-</span>width<span class="op">/</span><span class="dv">2</span><span class="op">-</span><span class="fl">0.0001</span></span>
+<span id="cb37-25"><a href="#cb37-25" aria-hidden="true" tabindex="-1"></a>        xp2 <span class="op">=</span> x_vals[j<span class="op">+</span><span class="dv">1</span>]<span class="op">-</span>width<span class="op">/</span><span class="dv">2</span><span class="op">+</span><span class="fl">0.0001</span></span>
+<span id="cb37-26"><a href="#cb37-26" aria-hidden="true" tabindex="-1"></a>        x_points[<span class="dv">3</span><span class="op">*</span>j<span class="op">+</span><span class="dv">2</span>] <span class="op">=</span> xp1</span>
+<span id="cb37-27"><a href="#cb37-27" aria-hidden="true" tabindex="-1"></a>        x_points[<span class="dv">3</span><span class="op">*</span>j<span class="op">+</span><span class="dv">3</span>] <span class="op">=</span> xp2</span>
+<span id="cb37-28"><a href="#cb37-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb37-29"><a href="#cb37-29" aria-hidden="true" tabindex="-1"></a>        width <span class="op">=</span> x_vals[j] <span class="op">-</span> x_vals[j<span class="op">-</span><span class="dv">1</span>] </span>
+<span id="cb37-30"><a href="#cb37-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-31"><a href="#cb37-31" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> i <span class="op">&lt;</span> ny <span class="op">-</span> <span class="dv">1</span>:</span>
+<span id="cb37-32"><a href="#cb37-32" aria-hidden="true" tabindex="-1"></a>        height <span class="op">=</span> y_vals[i<span class="op">+</span><span class="dv">1</span>] <span class="op">-</span> y_vals[i]</span>
+<span id="cb37-33"><a href="#cb37-33" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb37-34"><a href="#cb37-34" aria-hidden="true" tabindex="-1"></a>        height <span class="op">=</span> y_vals[i] <span class="op">-</span> y_vals[i<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb37-35"><a href="#cb37-35" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb37-36"><a href="#cb37-36" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> val <span class="kw">not</span> <span class="kw">in</span> vals:</span>
+<span id="cb37-37"><a href="#cb37-37" aria-hidden="true" tabindex="-1"></a>        label <span class="op">=</span> labels[val]</span>
+<span id="cb37-38"><a href="#cb37-38" aria-hidden="true" tabindex="-1"></a>        vals.add(val)</span>
+<span id="cb37-39"><a href="#cb37-39" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Draw rectangle with no fill but black edge and hatch pattern</span></span>
+<span id="cb37-40"><a href="#cb37-40" aria-hidden="true" tabindex="-1"></a>        rect <span class="op">=</span> Rectangle((x_vals[j] <span class="op">-</span> width<span class="op">/</span><span class="dv">2</span>, y_vals[i] <span class="op">-</span> height<span class="op">/</span><span class="dv">2</span>), width, height,</span>
+<span id="cb37-41"><a href="#cb37-41" aria-hidden="true" tabindex="-1"></a>                          fill<span class="op">=</span><span class="va">False</span>, edgecolor<span class="op">=</span><span class="st">'black'</span>, hatch<span class="op">=</span>hatches[val],</span>
+<span id="cb37-42"><a href="#cb37-42" aria-hidden="true" tabindex="-1"></a>                          linewidth<span class="op">=</span><span class="dv">0</span>, label<span class="op">=</span>label)  <span class="co"># no visible border line</span></span>
+<span id="cb37-43"><a href="#cb37-43" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>: </span>
+<span id="cb37-44"><a href="#cb37-44" aria-hidden="true" tabindex="-1"></a>        rect <span class="op">=</span> Rectangle((x_vals[j] <span class="op">-</span> width<span class="op">/</span><span class="dv">2</span>, y_vals[i] <span class="op">-</span> height<span class="op">/</span><span class="dv">2</span>), width, height,</span>
+<span id="cb37-45"><a href="#cb37-45" aria-hidden="true" tabindex="-1"></a>                          fill<span class="op">=</span><span class="va">False</span>, edgecolor<span class="op">=</span><span class="st">'black'</span>, hatch<span class="op">=</span>hatches[val],</span>
+<span id="cb37-46"><a href="#cb37-46" aria-hidden="true" tabindex="-1"></a>                          linewidth<span class="op">=</span><span class="dv">0</span>)  <span class="co"># no visible border line</span></span>
+<span id="cb37-47"><a href="#cb37-47" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb37-48"><a href="#cb37-48" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> x_vals[j]<span class="op">==</span><span class="dv">1</span>:  <span class="co"># Special case</span></span>
+<span id="cb37-49"><a href="#cb37-49" aria-hidden="true" tabindex="-1"></a>        width<span class="op">=</span><span class="fl">0.55</span></span>
+<span id="cb37-50"><a href="#cb37-50" aria-hidden="true" tabindex="-1"></a>        xp1 <span class="op">=</span> x_vals[j<span class="op">+</span><span class="dv">1</span>]<span class="op">-</span><span class="fl">0.5</span><span class="op">-</span><span class="fl">0.0001</span></span>
+<span id="cb37-51"><a href="#cb37-51" aria-hidden="true" tabindex="-1"></a>        xp2 <span class="op">=</span> x_vals[j<span class="op">+</span><span class="dv">1</span>]<span class="op">-</span><span class="fl">0.5</span><span class="op">+</span><span class="fl">0.0001</span></span>
+<span id="cb37-52"><a href="#cb37-52" aria-hidden="true" tabindex="-1"></a>        x_points[<span class="dv">3</span><span class="op">*</span>j<span class="op">+</span><span class="dv">2</span>] <span class="op">=</span> xp1</span>
+<span id="cb37-53"><a href="#cb37-53" aria-hidden="true" tabindex="-1"></a>        x_points[<span class="dv">3</span><span class="op">*</span>j<span class="op">+</span><span class="dv">3</span>] <span class="op">=</span> xp2</span>
+<span id="cb37-54"><a href="#cb37-54" aria-hidden="true" tabindex="-1"></a>        rect <span class="op">=</span> Rectangle((x_vals[j] <span class="op">-</span> <span class="fl">0.05</span>, y_vals[i] <span class="op">-</span> height<span class="op">/</span><span class="dv">2</span>), width, height,</span>
+<span id="cb37-55"><a href="#cb37-55" aria-hidden="true" tabindex="-1"></a>                          fill<span class="op">=</span><span class="va">False</span>, edgecolor<span class="op">=</span><span class="st">'black'</span>, hatch<span class="op">=</span>hatches[val],</span>
+<span id="cb37-56"><a href="#cb37-56" aria-hidden="true" tabindex="-1"></a>                          linewidth<span class="op">=</span><span class="dv">0</span>)  <span class="co"># no visible border line</span></span>
+<span id="cb37-57"><a href="#cb37-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-58"><a href="#cb37-58" aria-hidden="true" tabindex="-1"></a>    ax.add_patch(rect)</span>
+<span id="cb37-59"><a href="#cb37-59" aria-hidden="true" tabindex="-1"></a>    <span class="co"># if (indicator_highlight[i, j] == 2) or (indicator_highlight[i, j] == 5):</span></span>
+<span id="cb37-60"><a href="#cb37-60" aria-hidden="true" tabindex="-1"></a>            <span class="co"># text = ax.text(x_vals[j], y_vals[i], '*',</span></span>
+<span id="cb37-61"><a href="#cb37-61" aria-hidden="true" tabindex="-1"></a>                           <span class="co"># ha="center", va="center", color="w")</span></span>
+<span id="cb37-62"><a href="#cb37-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-63"><a href="#cb37-63" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb37-64"><a href="#cb37-64" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a discrete colormap with colors for 1, 2, 3</span></span>
+<span id="cb37-65"><a href="#cb37-65" aria-hidden="true" tabindex="-1"></a>cmap <span class="op">=</span> ListedColormap([<span class="st">'red'</span>, <span class="st">'blue'</span>, <span class="st">'purple'</span>])</span>
+<span id="cb37-66"><a href="#cb37-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-67"><a href="#cb37-67" aria-hidden="true" tabindex="-1"></a><span class="co"># Define boundaries between your discrete values</span></span>
+<span id="cb37-68"><a href="#cb37-68" aria-hidden="true" tabindex="-1"></a>bounds <span class="op">=</span> [<span class="fl">0.5</span>, <span class="fl">1.5</span>, <span class="fl">2.5</span>, <span class="fl">3.5</span>]</span>
+<span id="cb37-69"><a href="#cb37-69" aria-hidden="true" tabindex="-1"></a>norm <span class="op">=</span> BoundaryNorm(bounds, cmap.N)    </span>
+<span id="cb37-70"><a href="#cb37-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-71"><a href="#cb37-71" aria-hidden="true" tabindex="-1"></a>ax.pcolormesh(weights, discountfactors, </span>
+<span id="cb37-72"><a href="#cb37-72" aria-hidden="true" tabindex="-1"></a>              indicator_stable, cmap<span class="op">=</span>cmap, norm<span class="op">=</span>norm, alpha<span class="op">=</span><span class="fl">.6</span>)</span>
+<span id="cb37-73"><a href="#cb37-73" aria-hidden="true" tabindex="-1"></a>ax.plot(x_points, line_bottom, color<span class="op">=</span><span class="st">'k'</span>)</span>
+<span id="cb37-74"><a href="#cb37-74" aria-hidden="true" tabindex="-1"></a>ax.plot(x_points, line_top, color<span class="op">=</span><span class="st">'k'</span>)</span>
+<span id="cb37-75"><a href="#cb37-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-76"><a href="#cb37-76" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">'Weight '</span><span class="op">+</span><span class="vs">r'</span><span class="dv">$</span><span class="vs">w_U</span><span class="dv">$</span><span class="vs">'</span>, fontsize<span class="op">=</span><span class="dv">16</span>)</span>
+<span id="cb37-77"><a href="#cb37-77" aria-hidden="true" tabindex="-1"></a>ax.set_xscale(<span class="st">'log'</span>)</span>
+<span id="cb37-78"><a href="#cb37-78" aria-hidden="true" tabindex="-1"></a>ax.set_xlim([<span class="fl">0.09</span>, <span class="fl">10.5</span>])</span>
+<span id="cb37-79"><a href="#cb37-79" aria-hidden="true" tabindex="-1"></a>ax.set_ylim([<span class="fl">0.01</span>, <span class="fl">0.99</span>])</span>
+<span id="cb37-80"><a href="#cb37-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-81"><a href="#cb37-81" aria-hidden="true" tabindex="-1"></a>ax.plot([], [], color<span class="op">=</span><span class="st">'red'</span>, alpha<span class="op">=</span><span class="fl">.6</span>, label<span class="op">=</span><span class="st">"risky stable"</span>)</span>
+<span id="cb37-82"><a href="#cb37-82" aria-hidden="true" tabindex="-1"></a>ax.plot([], [], color<span class="op">=</span><span class="st">'blue'</span>, alpha<span class="op">=</span><span class="fl">.6</span>, label<span class="op">=</span><span class="st">"safe stable"</span>)</span>
+<span id="cb37-83"><a href="#cb37-83" aria-hidden="true" tabindex="-1"></a>ax.plot([], [], color<span class="op">=</span><span class="st">'purple'</span>, alpha<span class="op">=</span><span class="fl">.6</span>, label<span class="op">=</span><span class="st">"both stable"</span>)</span>
+<span id="cb37-84"><a href="#cb37-84" aria-hidden="true" tabindex="-1"></a>ax.legend(bbox_to_anchor<span class="op">=</span>(<span class="fl">1.01</span>, <span class="fl">1.01</span>), fontsize<span class="op">=</span><span class="dv">14</span>)</span>
+<span id="cb37-85"><a href="#cb37-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-86"><a href="#cb37-86" aria-hidden="true" tabindex="-1"></a>ax.tick_params(axis<span class="op">=</span><span class="st">'both'</span>, which<span class="op">=</span><span class="st">'major'</span>, labelsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb37-87"><a href="#cb37-87" aria-hidden="true" tabindex="-1"></a>ax.tick_params(axis<span class="op">=</span><span class="st">'both'</span>, which<span class="op">=</span><span class="st">'minor'</span>, labelsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb37-88"><a href="#cb37-88" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb37-89"><a href="#cb37-89" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">'Discount factor '</span><span class="op">+</span><span class="vs">r'</span><span class="dv">$</span><span class="er">\</span><span class="vs">gamma</span><span class="dv">$</span><span class="vs">'</span>, fontsize<span class="op">=</span><span class="dv">16</span>)</span>
+<span id="cb37-90"><a href="#cb37-90" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'Stability landscape'</span>, fontsize<span class="op">=</span><span class="dv">18</span>)</span>
+<span id="cb37-91"><a href="#cb37-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-92"><a href="#cb37-92" aria-hidden="true" tabindex="-1"></a><span class="co"># Save the figure</span></span>
+<span id="cb37-93"><a href="#cb37-93" aria-hidden="true" tabindex="-1"></a>plt.savefig(<span class="st">'../figs/StabilityLandscape.tiff'</span>, dpi<span class="op">=</span><span class="dv">300</span>, bbox_inches<span class="op">=</span><span class="st">'tight'</span>, <span class="bu">format</span><span class="op">=</span><span class="st">'tiff'</span>)</span>
+<span id="cb37-94"><a href="#cb37-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-95"><a href="#cb37-95" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="fig-stability-landscape" class="cell-output cell-output-display quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-stability-landscape-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<pre><code>&lt;Figure size 2100x2100 with 1 Axes&gt;</code></pre>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-stability-landscape-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;14.9: Stability landscape for an agent playing a risk-reward dilemma, for different values of the optimism weight and the discount factor.
+</figcaption>
+</figure>
+</div>
+</div>
+<p>Interestingly, <a href="#fig-stability-landscape" class="quarto-xref">Figure&nbsp;<span>14.9</span></a> shows zones where the safe strategy is stable, while the risky strategy yields a higher value overall (and vice-versa). This occurs even for neutral agents (<span class="math inline">\(w_U = 1\)</span>). We coin this kind of incoherent choice an “individual dilemma”. Below, we visualize the flowplots showing this individual dilemma at <span class="math inline">\(w_U = 1\)</span>, <span class="math inline">\(\gamma = 0.794\)</span>. Note that this individual dilemma does not occur for non-distributional agents.</p>
+<div id="28935d6c" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Individual dilemma at w=1, gamma=0.794</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>aei <span class="op">=</span> DDRLActorCritic(env, nr_reward_bins<span class="op">=</span><span class="dv">29</span>, discretization_sigma<span class="op">=</span><span class="fl">0.05</span>, </span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>                      learning_rates<span class="op">=</span><span class="fl">0.1</span>, discount_factors<span class="op">=</span><span class="fl">0.794</span>, </span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>                      Rmin<span class="op">=</span><span class="dv">0</span>, Rmax<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>                      method<span class="op">=</span><span class="st">"weights"</span>, wU<span class="op">=</span><span class="dv">1</span>, use_prefactor<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>mae <span class="op">=</span> stratAC(env, learning_rates<span class="op">=</span><span class="fl">0.1</span>, discount_factors<span class="op">=</span><span class="fl">0.794</span>, use_prefactor<span class="op">=</span><span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>WARNING:2026-03-20 10:05:29,396:jax._src.xla_bridge:794: An NVIDIA GPU may be present on this machine, but a CUDA-enabled jaxlib is not installed. Falling back to cpu.</code></pre>
+</div>
+</div>
+<div id="caac1d5e" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Flowplots</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> ([<span class="dv">0</span>], [<span class="dv">0</span>], [<span class="dv">0</span>])  <span class="co"># prosperous state</span></span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> ([<span class="dv">0</span>], [<span class="dv">1</span>], [<span class="dv">0</span>])  <span class="co"># degraded state</span></span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>fig, (ax1, ax2) <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">6</span>,<span class="dv">3</span>))</span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>fp.plot_strategy_flow(aei, x, y, flowarrow_points <span class="op">=</span> np.linspace(<span class="fl">0.01</span> ,<span class="fl">0.99</span>, <span class="dv">9</span>), </span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a>                      NrRandom<span class="op">=</span><span class="dv">16</span>, axes<span class="op">=</span>ax1)</span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>fp.plot_strategy_flow(mae, x, y, flowarrow_points <span class="op">=</span> np.linspace(<span class="fl">0.01</span> ,<span class="fl">0.99</span>, <span class="dv">9</span>), </span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>                      NrRandom<span class="op">=</span><span class="dv">16</span>, axes<span class="op">=</span>ax2)</span>
+<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a>ax1.set_title(<span class="st">"Distributional"</span>)</span>
+<span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a>ax2.set_title(<span class="st">"Non-distributional"</span>)</span>
+<span id="cb41-13"><a href="#cb41-13" aria-hidden="true" tabindex="-1"></a>ax1.set_ylabel(<span class="st">"prob. safe in deg. state"</span>)</span>
+<span id="cb41-14"><a href="#cb41-14" aria-hidden="true" tabindex="-1"></a>ax1.set_xlabel(<span class="st">"prob. safe in prosp. state"</span>)</span>
+<span id="cb41-15"><a href="#cb41-15" aria-hidden="true" tabindex="-1"></a>ax2.set_xlabel(<span class="st">"prob. safe in prosp. state"</span>)</span>
+<span id="cb41-16"><a href="#cb41-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-17"><a href="#cb41-17" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06.03_IntertemporalRiskyChoice_files/figure-html/cell-31-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>We can also plot the distributional agent’s state and action-state V-return distributions at this individual dilemma. <a href="#fig-dilemma-distrib" class="quarto-xref">Figure&nbsp;<span>14.10</span></a> shows that, although the risky policy is stable, the safe policy yields a higher state value.</p>
+<div id="4ebf2ede" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co"># V-return distributions</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>Visv_risk <span class="op">=</span> aei.Visv(Xrisk)</span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>Visv_safe <span class="op">=</span> aei.Visv(Xsafe)</span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Means</span></span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a>vis_risk <span class="op">=</span> np.einsum(<span class="st">'ijk,k-&gt;ij'</span>, Visv_risk, aei.gridpoints)</span>
+<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a>vis_safe <span class="op">=</span> np.einsum(<span class="st">'ijk,k-&gt;ij'</span>, Visv_safe, aei.gridpoints)</span>
+<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a><span class="co"># State-Action V-return distributions</span></span>
+<span id="cb42-12"><a href="#cb42-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-13"><a href="#cb42-13" aria-hidden="true" tabindex="-1"></a>Visav_risk <span class="op">=</span> aei.Visav(Xrisk)</span>
+<span id="cb42-14"><a href="#cb42-14" aria-hidden="true" tabindex="-1"></a>Visav_safe <span class="op">=</span> aei.Visav(Xsafe)</span>
+<span id="cb42-15"><a href="#cb42-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-16"><a href="#cb42-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Means</span></span>
+<span id="cb42-17"><a href="#cb42-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-18"><a href="#cb42-18" aria-hidden="true" tabindex="-1"></a>visa_risk <span class="op">=</span> np.einsum(<span class="st">'ijkl,l-&gt;ijk'</span>, Visav_risk, aei.gridpoints)</span>
+<span id="cb42-19"><a href="#cb42-19" aria-hidden="true" tabindex="-1"></a>visa_safe <span class="op">=</span> np.einsum(<span class="st">'ijkl,l-&gt;ijk'</span>, Visav_safe, aei.gridpoints)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="cell-fig-dilemma-distrib" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot </span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>fig, ((ax1, ax2), (ax3, ax4)) <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">2</span>, figsize <span class="op">=</span> (<span class="dv">10</span>, <span class="dv">8</span>))</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>ax1.bar(aei.gridpoints, Visv_safe[<span class="dv">0</span>,<span class="dv">0</span>,:], width<span class="op">=</span><span class="fl">0.9</span><span class="op">*</span>aei.gridwidth, color<span class="op">=</span><span class="st">"blue"</span>, alpha<span class="op">=</span><span class="fl">0.4</span>)</span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>ax2.bar(aei.gridpoints, Visv_risk[<span class="dv">0</span>,<span class="dv">0</span>,:], width<span class="op">=</span><span class="fl">0.9</span><span class="op">*</span>aei.gridwidth, color<span class="op">=</span><span class="st">"red"</span>, alpha<span class="op">=</span><span class="fl">0.4</span>)</span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>ax1.plot([vis_safe[<span class="dv">0</span>, <span class="dv">0</span>], vis_safe[<span class="dv">0</span>, <span class="dv">0</span>]], [<span class="dv">0</span>, <span class="fl">0.02</span>], color<span class="op">=</span><span class="st">"blue"</span>)</span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>ax2.plot([vis_risk[<span class="dv">0</span>, <span class="dv">0</span>], vis_risk[<span class="dv">0</span>, <span class="dv">0</span>]], [<span class="dv">0</span>, <span class="fl">0.005</span>], color<span class="op">=</span><span class="st">"red"</span>)</span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>ax2.plot([vis_safe[<span class="dv">0</span>, <span class="dv">0</span>], vis_safe[<span class="dv">0</span>, <span class="dv">0</span>]], [<span class="dv">0</span>, <span class="fl">0.005</span>], color<span class="op">=</span><span class="st">"blue"</span>, ls<span class="op">=</span><span class="st">'--'</span>)</span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a>ax1.plot([vis_risk[<span class="dv">0</span>, <span class="dv">0</span>], vis_risk[<span class="dv">0</span>, <span class="dv">0</span>]], [<span class="dv">0</span>, <span class="fl">0.02</span>], color<span class="op">=</span><span class="st">"red"</span>, ls<span class="op">=</span><span class="st">'--'</span>)</span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a>ax1.set_title(<span class="vs">r'</span><span class="dv">$</span><span class="vs">V</span><span class="dv">^</span><span class="vs">{i,</span><span class="ch">\t</span><span class="vs">ext{prosp},v}</span><span class="kw">(</span><span class="vs">X</span><span class="dv">^</span><span class="vs">{</span><span class="ch">\t</span><span class="vs">ext{safe}}</span><span class="kw">)</span><span class="dv">$</span><span class="vs">'</span>)</span>
+<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a>ax2.set_title(<span class="vs">r'</span><span class="dv">$</span><span class="vs">V</span><span class="dv">^</span><span class="vs">{i,</span><span class="ch">\t</span><span class="vs">ext{prosp},v}</span><span class="kw">(</span><span class="vs">X</span><span class="dv">^</span><span class="vs">{</span><span class="ch">\t</span><span class="vs">ext{risk}}</span><span class="kw">)</span><span class="dv">$</span><span class="vs">'</span>)</span>
+<span id="cb43-13"><a href="#cb43-13" aria-hidden="true" tabindex="-1"></a><span class="co">#ax1.set_xlabel(r'$v$')</span></span>
+<span id="cb43-14"><a href="#cb43-14" aria-hidden="true" tabindex="-1"></a><span class="co">#ax2.set_xlabel(r'$v$')</span></span>
+<span id="cb43-15"><a href="#cb43-15" aria-hidden="true" tabindex="-1"></a>ax1.set_ylabel(<span class="vs">r'</span><span class="dv">$</span><span class="vs">V</span><span class="dv">^</span><span class="vs">{i,</span><span class="ch">\t</span><span class="vs">ext{prosp},v}</span><span class="dv">$</span><span class="vs">'</span>)</span>
+<span id="cb43-16"><a href="#cb43-16" aria-hidden="true" tabindex="-1"></a>ax3.bar(aei.gridpoints, Visav_safe[<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,:], </span>
+<span id="cb43-17"><a href="#cb43-17" aria-hidden="true" tabindex="-1"></a>        width<span class="op">=</span><span class="fl">0.9</span><span class="op">*</span>aei.gridwidth, color<span class="op">=</span><span class="st">"blue"</span>, alpha<span class="op">=</span><span class="fl">0.4</span>, label<span class="op">=</span><span class="vs">r'</span><span class="dv">$</span><span class="vs">a=</span><span class="ch">\t</span><span class="vs">ext{safe}</span><span class="dv">$</span><span class="vs">'</span>)</span>
+<span id="cb43-18"><a href="#cb43-18" aria-hidden="true" tabindex="-1"></a>ax3.bar(aei.gridpoints, Visav_safe[<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">1</span>,:], </span>
+<span id="cb43-19"><a href="#cb43-19" aria-hidden="true" tabindex="-1"></a>        width<span class="op">=</span><span class="fl">0.9</span><span class="op">*</span>aei.gridwidth, color<span class="op">=</span><span class="st">"red"</span>, alpha<span class="op">=</span><span class="fl">0.4</span>, label<span class="op">=</span><span class="vs">r'</span><span class="dv">$</span><span class="vs">a=</span><span class="ch">\t</span><span class="vs">ext{risk}</span><span class="dv">$</span><span class="vs">'</span>)</span>
+<span id="cb43-20"><a href="#cb43-20" aria-hidden="true" tabindex="-1"></a>ax4.bar(aei.gridpoints, Visav_risk[<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,:], </span>
+<span id="cb43-21"><a href="#cb43-21" aria-hidden="true" tabindex="-1"></a>        width<span class="op">=</span><span class="fl">0.9</span><span class="op">*</span>aei.gridwidth, color<span class="op">=</span><span class="st">"blue"</span>, alpha<span class="op">=</span><span class="fl">0.4</span>)</span>
+<span id="cb43-22"><a href="#cb43-22" aria-hidden="true" tabindex="-1"></a>ax4.bar(aei.gridpoints, Visav_risk[<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">1</span>,:], </span>
+<span id="cb43-23"><a href="#cb43-23" aria-hidden="true" tabindex="-1"></a>        width<span class="op">=</span><span class="fl">0.9</span><span class="op">*</span>aei.gridwidth, color<span class="op">=</span><span class="st">"red"</span>, alpha<span class="op">=</span><span class="fl">0.4</span>)</span>
+<span id="cb43-24"><a href="#cb43-24" aria-hidden="true" tabindex="-1"></a>ax3.plot([visa_safe[<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>], visa_safe[<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>]], [<span class="dv">0</span>, <span class="fl">0.02</span>], color<span class="op">=</span><span class="st">"blue"</span>)</span>
+<span id="cb43-25"><a href="#cb43-25" aria-hidden="true" tabindex="-1"></a>ax3.plot([visa_safe[<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>], visa_safe[<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>]], [<span class="dv">0</span>, <span class="fl">0.02</span>], color<span class="op">=</span><span class="st">"red"</span>)</span>
+<span id="cb43-26"><a href="#cb43-26" aria-hidden="true" tabindex="-1"></a>ax4.plot([visa_risk[<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>], visa_risk[<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>]], [<span class="dv">0</span>, <span class="fl">0.005</span>], color<span class="op">=</span><span class="st">"blue"</span>)</span>
+<span id="cb43-27"><a href="#cb43-27" aria-hidden="true" tabindex="-1"></a>ax4.plot([visa_risk[<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>], visa_risk[<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>]], [<span class="dv">0</span>, <span class="fl">0.005</span>], color<span class="op">=</span><span class="st">"red"</span>)</span>
+<span id="cb43-28"><a href="#cb43-28" aria-hidden="true" tabindex="-1"></a>ax3.set_title(<span class="vs">r'</span><span class="dv">$</span><span class="vs">V</span><span class="dv">^</span><span class="vs">{i,</span><span class="ch">\t</span><span class="vs">ext{prosp},a,v}</span><span class="kw">(</span><span class="vs">X</span><span class="dv">^</span><span class="vs">{</span><span class="ch">\t</span><span class="vs">ext{safe}}</span><span class="kw">)</span><span class="dv">$</span><span class="vs">'</span>)</span>
+<span id="cb43-29"><a href="#cb43-29" aria-hidden="true" tabindex="-1"></a>ax4.set_title(<span class="vs">r'</span><span class="dv">$</span><span class="vs">V</span><span class="dv">^</span><span class="vs">{i,</span><span class="ch">\t</span><span class="vs">ext{prosp},a,v}</span><span class="kw">(</span><span class="vs">X</span><span class="dv">^</span><span class="vs">{</span><span class="ch">\t</span><span class="vs">ext{risk}}</span><span class="kw">)</span><span class="dv">$</span><span class="vs">'</span>)</span>
+<span id="cb43-30"><a href="#cb43-30" aria-hidden="true" tabindex="-1"></a>ax3.legend()</span>
+<span id="cb43-31"><a href="#cb43-31" aria-hidden="true" tabindex="-1"></a>ax3.set_xlabel(<span class="vs">r'</span><span class="dv">$</span><span class="vs">v</span><span class="dv">$</span><span class="vs">'</span>)</span>
+<span id="cb43-32"><a href="#cb43-32" aria-hidden="true" tabindex="-1"></a>ax4.set_xlabel(<span class="vs">r'</span><span class="dv">$</span><span class="vs">v</span><span class="dv">$</span><span class="vs">'</span>)</span>
+<span id="cb43-33"><a href="#cb43-33" aria-hidden="true" tabindex="-1"></a>ax3.set_ylabel(<span class="vs">r'</span><span class="dv">$</span><span class="vs">V</span><span class="dv">^</span><span class="vs">{i,</span><span class="ch">\t</span><span class="vs">ext{prosp},a,v}</span><span class="dv">$</span><span class="vs">'</span>)</span>
+<span id="cb43-34"><a href="#cb43-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-35"><a href="#cb43-35" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div id="fig-dilemma-distrib" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-dilemma-distrib-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="06.03_IntertemporalRiskyChoice_files/figure-html/fig-dilemma-distrib-output-1.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-dilemma-distrib-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;14.10: State and action-state V-return distributions for a distributional agent playing a risk-reward dilemma.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+      window.quartoDecorateExternalLinks = function (root) {
+     var links = (root || window.document).querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+          if (!link.classList.contains('no-external-icon')) {
+          }
+        }
+      }
+      };
+      window.quartoDecorateExternalLinks(window.document);
+    // Esc closes the popup (WCAG 1.4.13) and focus leaving both trigger and
+    // popup closes it (WCAG 2.4.11); tippy handles neither for interactive popups.
+    const hideOnEscAndFocusOut = {
+      name: 'hideOnEscAndFocusOut',
+      defaultValue: true,
+      fn(instance) {
+        const dismiss = () => {
+          // A show scheduled by the trigger delay would otherwise reopen it
+          instance.clearDelayTimeouts();
+          instance.hide();
+        };
+        const onKeyDown = (event) => {
+          if (event.key !== 'Escape') {
+            return;
+          }
+          // Keep Esc from also reaching page handlers (e.g. reveal.js overview),
+          // except an open reveal.js slide menu, which Esc should close too.
+          // The menu handles keys only when its keyboard option is on.
+          const menuHandlesEsc = window.Reveal?.getPlugin?.('menu')?.isOpen() &&
+            window.Reveal.getConfig().menu?.keyboard !== false;
+          if (!menuHandlesEsc) {
+            event.stopPropagation();
+          }
+          if (instance.popper.contains(window.document.activeElement)) {
+            // Disabled while refocusing so the focus trigger does not reopen it
+            instance.disable();
+            instance.reference.focus();
+            instance.enable();
+          }
+          dismiss();
+        };
+        const onFocusOut = (event) => {
+          const target = event.relatedTarget;
+          if (target && !instance.reference.contains(target) &&
+              !instance.popper.contains(target)) {
+            dismiss();
+          }
+        };
+        // On the trigger too: a click trigger (code-annotations: select) has no
+        // blur handling. Attached for the instance's lifetime so leaving the
+        // trigger also cancels a show still pending on the trigger delay.
+        instance.reference.addEventListener('focusout', onFocusOut);
+        return {
+          onShow() {
+            window.document.addEventListener('keydown', onKeyDown, true);
+            instance.popper.addEventListener('focusout', onFocusOut);
+          },
+          onHide() {
+            window.document.removeEventListener('keydown', onKeyDown, true);
+            instance.popper.removeEventListener('focusout', onFocusOut);
+          },
+          onDestroy() {
+            instance.reference.removeEventListener('focusout', onFocusOut);
+          },
+        };
+      },
+    };
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+        plugins: [hideOnEscAndFocusOut],
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          // Each band is positioned against its own containing block, which is
+          // not the offsetParent of the lines, so place it from client rects.
+          const placeBand = (band, firstEl, lastEl, codeBlock) => {
+            const container = band.offsetParent;
+            if (container === null) {
+              return;
+            }
+            const containerRect = container.getBoundingClientRect();
+            // Reveal.js scales slides with a transform, so convert client
+            // pixels back to the CSS pixels of the container.
+            const scale = containerRect.height / container.offsetHeight || 1;
+            const firstRect = firstEl.getBoundingClientRect();
+            const lastRect = lastEl.getBoundingClientRect();
+            const top = (firstRect.top - containerRect.top) / scale - container.clientTop + container.scrollTop;
+            const height = (lastRect.bottom - firstRect.top) / scale;
+            band.style.top = top - 2 + "px";
+            band.style.height = height + 4 + "px";
+            if (codeBlock) {
+              // Without the copy button wrapper, the containing block is wider
+              // than the code block, so span the code block explicitly.
+              const blockRect = codeBlock.getBoundingClientRect();
+              band.style.left = (blockRect.left - containerRect.left) / scale - container.clientLeft + container.scrollLeft + "px";
+              band.style.width = blockRect.width / scale + "px";
+            }
+          };
+          if (lineIds.length > 0) {
+            const el = window.document.getElementById(lineIds[0]);
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const parent = el.parentElement.parentElement;
+            // cook up a div (if necessary) and position it
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            placeBand(div, el, lastEl, parent.closest("div.sourceCode") || parent);
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            placeBand(gutterDiv, el, lastEl);
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+  <script type="application/javascript">
+  window.quartoScrollableRegionsLabels = {"code":"Scrollable code","output":"Scrollable output"};
+  </script>
+<nav class="page-navigation" aria-label="Page">
+  <div class="nav-page nav-page-previous">
+      <a href="./06.02_socialcoordinationtask.html" class="pagination-link" aria-label="Social coordination task {#sec-socialcoord}">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Social coordination task {#sec-socialcoord}</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./references.html" class="pagination-link" aria-label="References {.unnumbered}">
+        <span class="nav-page-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">References {.unnumbered}</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

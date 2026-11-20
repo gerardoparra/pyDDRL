@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.11.9">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>2&nbsp; DDRL Base {#sec-ddrlbase} – Deterministic Distributional Reinforcement Learning</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./02.02_ddrlsarsa.html" rel="next">
+<link href="./agents.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/scrollable-regions/scrollable-regions.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-8141c31b12be1f67465bed69e2110aa9.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="floating quarto-light"><a id="quarto-skip-link" class="visually-hidden-focusable" href="#quarto-document-content">Skip to main content</a>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav" aria-label="Toolbar">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="Breadcrumbs"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./agents.html">Agents {#sec-agents}</a></li><li class="breadcrumb-item"><a href="./02.01_ddrlbase.html"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">DDRL Base {#sec-ddrlbase}</span></a></li></ol></nav>
+        <a class="flex-grow-1" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto" aria-label="Site">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Deterministic Distributional Reinforcement Learning</a> 
+        <div class="sidebar-tools-main">
+    <a href="https://github.com/clembergerot/pyDDRL" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
+    <a href="./Deterministic-Distributional-Reinforcement-Learning.pdf" title="Download PDF" class="quarto-navigation-tool px-1" aria-label="Download PDF"><i class="bi bi-file-pdf"></i></a>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Introduction {#sec-introduction}</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text" id="quarto-sidebar-section-1-label">Agents {#sec-agents}</span></a>
+            <button type="button" class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-controls="quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section: Agents {#sec-agents}">
+              <i class="bi bi-chevron-right ms-2" aria-hidden="true"></i>
+            </button> 
+      </div>
+      <ul id="quarto-sidebar-section-1" aria-labelledby="quarto-sidebar-section-1-label" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02.01_ddrlbase.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">DDRL Base {#sec-ddrlbase}</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02.02_ddrlsarsa.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">DDRL SARSA {#sec-ddrlsarsa}</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02.03_ddrlactorcritic.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">DDRL Actor-Critic {#sec-ddrlac}</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02.04_biasingmethods.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Biasing methods {#sec-biasing-methods}</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./environments.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text" id="quarto-sidebar-section-2-label">Environments {#sec-environments}</span></a>
+            <button type="button" class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-controls="quarto-sidebar-section-2" aria-expanded="true" aria-label="Toggle section: Environments {#sec-environments}">
+              <i class="bi bi-chevron-right ms-2" aria-hidden="true"></i>
+            </button> 
+      </div>
+      <ul id="quarto-sidebar-section-2" aria-labelledby="quarto-sidebar-section-2-label" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03.01_twoarmedbandit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Two-armed bandit {#sec-twoarmedbandit}</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03.02_socialdilemma.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Social dilemma {#sec-socialdilemma}</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03.03_riskrewarddilemma.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Risk-reward dilemma {#sec-rrdilemma}</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./utilities.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text" id="quarto-sidebar-section-3-label">Utilities {#sec-utilities}</span></a>
+            <button type="button" class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-controls="quarto-sidebar-section-3" aria-expanded="true" aria-label="Toggle section: Utilities {#sec-utilities}">
+              <i class="bi bi-chevron-right ms-2" aria-hidden="true"></i>
+            </button> 
+      </div>
+      <ul id="quarto-sidebar-section-3" aria-labelledby="quarto-sidebar-section-3-label" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04.01_trajectories.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Trajectories {#sec-trajectories}</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04.02_phaseplot.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Phase plot {#sec-phaseplot}</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04.03_plottingtools.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Plotting tools {#sec-plottingtools}</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <span class="sidebar-item-text sidebar-link text-start">
+ <span class="menu-text">Discretization calibration {#sec-calibration}</span></span>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./results.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text" id="quarto-sidebar-section-5-label">Results {#sec-results}</span></a>
+            <button type="button" class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-controls="quarto-sidebar-section-5" aria-expanded="true" aria-label="Toggle section: Results {#sec-results}">
+              <i class="bi bi-chevron-right ms-2" aria-hidden="true"></i>
+            </button> 
+      </div>
+      <ul id="quarto-sidebar-section-5" aria-labelledby="quarto-sidebar-section-5-label" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./06.01_explorationexploitationchallenge.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Exploration-Exploitation Challenge {#sec-exploration}</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./06.02_socialcoordinationtask.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Social coordination task {#sec-socialcoord}</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./06.03_intertemporalriskychoice.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Intertemporal risky choice problem {#sec-intertemporal}</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">References {.unnumbered}</span></span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" aria-labelledby="toc-title" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#test-environment" id="toc-test-environment" class="nav-link active" data-scroll-target="#test-environment"><span class="header-section-number">2.1</span> Test environment</a>
+  <ul class="collapse">
+  <li><a href="#stochastic-two-armed-bandit-with-discrete-return" id="toc-stochastic-two-armed-bandit-with-discrete-return" class="nav-link" data-scroll-target="#stochastic-two-armed-bandit-with-discrete-return">Stochastic two-armed bandit with discrete return</a></li>
+  <li><a href="#stochastic-two-armed-bandit-with-continuous-return" id="toc-stochastic-two-armed-bandit-with-continuous-return" class="nav-link" data-scroll-target="#stochastic-two-armed-bandit-with-continuous-return">Stochastic two-armed bandit with continuous return</a></li>
+  </ul></li>
+  <li><a href="#discretization-and-basic-reward-distribution-risboldsymbolaacute-s-r" id="toc-discretization-and-basic-reward-distribution-risboldsymbolaacute-s-r" class="nav-link" data-scroll-target="#discretization-and-basic-reward-distribution-risboldsymbolaacute-s-r"><span class="header-section-number">2.2</span> Discretization and basic reward distribution <span class="math inline">\(R^{i,s,\boldsymbol{a},\acute s, r}\)</span></a>
+  <ul class="collapse">
+  <li><a href="#discretization-grid" id="toc-discretization-grid" class="nav-link" data-scroll-target="#discretization-grid">Discretization grid</a></li>
+  <li><a href="#basic-reward-distribution-risboldsymbolaacute-s-r" id="toc-basic-reward-distribution-risboldsymbolaacute-s-r" class="nav-link" data-scroll-target="#basic-reward-distribution-risboldsymbolaacute-s-r">Basic reward distribution <span class="math inline">\(R^{i,s,\boldsymbol{a},\acute s, r}\)</span></a></li>
+  </ul></li>
+  <li><a href="#smoothed-bellman-kronecker-delta-deltaivracute-v" id="toc-smoothed-bellman-kronecker-delta-deltaivracute-v" class="nav-link" data-scroll-target="#smoothed-bellman-kronecker-delta-deltaivracute-v"><span class="header-section-number">2.3</span> Smoothed Bellman Kronecker delta <span class="math inline">\(\delta^{i,v,r,\acute v}\)</span></a></li>
+  <li><a href="#ddrl-base-class" id="toc-ddrl-base-class" class="nav-link" data-scroll-target="#ddrl-base-class"><span class="header-section-number">2.4</span> DDRL Base class</a></li>
+  <li><a href="#computing-distributions-in-ddrl" id="toc-computing-distributions-in-ddrl" class="nav-link" data-scroll-target="#computing-distributions-in-ddrl"><span class="header-section-number">2.5</span> Computing distributions in DDRL</a>
+  <ul class="collapse">
+  <li><a href="#reward-distributions-risair-and-risr" id="toc-reward-distributions-risair-and-risr" class="nav-link" data-scroll-target="#reward-distributions-risair-and-risr">Reward distributions <span class="math inline">\(R^{i,s,a^i,r}\)</span> and <span class="math inline">\(R^{i,s,r}\)</span></a></li>
+  </ul></li>
+  <li><a href="#v-return-distribution-visv" id="toc-v-return-distribution-visv" class="nav-link" data-scroll-target="#v-return-distribution-visv"><span class="header-section-number">2.6</span> V-return distribution <span class="math inline">\(V^{i,s,v}\)</span></a></li>
+  <li><a href="#additional-functions" id="toc-additional-functions" class="nav-link" data-scroll-target="#additional-functions"><span class="header-section-number">2.7</span> Additional functions</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content" tabindex="-1">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="Breadcrumbs"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./agents.html">Agents {#sec-agents}</a></li><li class="breadcrumb-item"><a href="./02.01_ddrlbase.html"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">DDRL Base {#sec-ddrlbase}</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">DDRL Base {#sec-ddrlbase}</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<div id="1b1bc06d" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-20T12:15:03.500365+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-20T12:15:03.502768+00:00&quot;,&quot;total&quot;:0.0024083529999927578}}" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># imports for this notebook</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># actor-critic agent</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pyCRLD.Agents.StrategyActorCritic <span class="im">import</span> stratAC</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="1a3e7719" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-20T12:15:03.502892+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-20T12:15:03.508244+00:00&quot;,&quot;total&quot;:0.005358933999985993}}" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">## Environment for testing</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># two-armed bandit</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pyDDRL.Environments.TwoArmedBandit <span class="im">import</span> TwoArmedBandit</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="test-environment" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="test-environment"><span class="header-section-number">2.1</span> Test environment</h2>
+<p>We use a two-armed bandit (defined in Section <span class="quarto-unresolved-ref">?sec-twoarmedbandit</span> ) as a test environment. To illustrate different ways of computing reward distributions, we introduce two types of two-armed bandits: one with discrete return, and one with continuous return.</p>
+<section id="stochastic-two-armed-bandit-with-discrete-return" class="level3">
+<h3 class="anchored" data-anchor-id="stochastic-two-armed-bandit-with-discrete-return">Stochastic two-armed bandit with discrete return</h3>
+<p>In this version, an agent can choose between two options: * the first arm, <span class="math inline">\(a_1\)</span>, yields a reward <span class="math inline">\(+1\)</span> with probability <span class="math inline">\(0.7\)</span>, and a punishment <span class="math inline">\(-1\)</span> with probability <span class="math inline">\(0.3\)</span>; * the second arm, <span class="math inline">\(a_2\)</span>, yields a reward <span class="math inline">\(+1\)</span> with probability <span class="math inline">\(0.3\)</span>, and a punishment <span class="math inline">\(-1\)</span> with probability <span class="math inline">\(0.7\)</span>.</p>
+<p>Let’s implement this environment:</p>
+<div id="d86eb87e" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># reward amounts</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> np.array([[<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span>],  <span class="co"># first arm</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>               [<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span>]])  <span class="co"># second arm</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># probabilities</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>ps <span class="op">=</span> np.array([[<span class="fl">0.3</span>, <span class="fl">0.7</span>],  <span class="co"># first arm</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>               [<span class="fl">0.7</span>, <span class="fl">0.3</span>]])  <span class="co"># second arm</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Define environment</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>tab_1s <span class="op">=</span> TwoArmedBandit(disttype<span class="op">=</span><span class="st">'discrete'</span>, xs<span class="op">=</span>xs, ps<span class="op">=</span>ps)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>tab_1s.Rdict</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>{'x': array([[[[[-1.,  1.]],
+ 
+          [[-1.,  1.]]]]]),
+ 'p': array([[[[[0.3, 0.7]],
+ 
+          [[0.7, 0.3]]]]])}</code></pre>
+</div>
+</div>
+<p>This environment can be visualized as follows:</p>
+<div id="67508068" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">## Plot the return distributions</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> tab_1s.Rdict[<span class="st">'x'</span>]</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> tab_1s.Rdict[<span class="st">'p'</span>]</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="fl">4.5</span>, <span class="fl">1.5</span>))</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> a, ax <span class="kw">in</span> <span class="bu">enumerate</span>(axes):</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    ax.spines[[<span class="st">'right'</span>, <span class="st">'top'</span>, <span class="st">'left'</span>]].set_visible(<span class="va">False</span>)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    ax.bar(x[<span class="dv">0</span>,<span class="dv">0</span>,a][<span class="dv">0</span>], p[<span class="dv">0</span>,<span class="dv">0</span>,a][<span class="dv">0</span>], width<span class="op">=</span><span class="fl">0.3</span>, color<span class="op">=</span><span class="st">'k'</span>)</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(<span class="st">"r"</span>)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    ax.set_ylim([<span class="dv">0</span>,<span class="fl">0.8</span>])</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="st">"random return for arm "</span><span class="op">+</span><span class="bu">str</span>(a<span class="op">+</span><span class="dv">1</span>), fontsize<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_ylabel(<span class="vs">r'</span><span class="dv">$</span><span class="vs">p</span><span class="kw">(</span><span class="vs">R = r</span><span class="kw">)</span><span class="dv">$</span><span class="vs">'</span>)</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_yticklabels([])</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_yticks([])</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>&lt;Figure size 1350x450 with 2 Axes&gt;</code></pre>
+</div>
+</div>
+</section>
+<section id="stochastic-two-armed-bandit-with-continuous-return" class="level3">
+<h3 class="anchored" data-anchor-id="stochastic-two-armed-bandit-with-continuous-return">Stochastic two-armed bandit with continuous return</h3>
+<p>In a stochastic two-armed bandit with continuous return, the random return follows a continuous distribution.</p>
+<p>Let’s consider the following example, in which an agent can choose between two arms: * the first arm gives a random return that follows a Gaussian distribution, centered around <span class="math inline">\(\mu = 1\)</span>, with standard deviation <span class="math inline">\(\sigma = 0.5\)</span>; * the second arm gives a random return that follows a Gaussian distribution, centered around <span class="math inline">\(\mu = -1\)</span>, with standard deviation <span class="math inline">\(\sigma = 2.0\)</span>.</p>
+<div id="318e9147" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define environment</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>distA <span class="op">=</span> (<span class="st">'norm'</span>, <span class="dv">1</span>, <span class="fl">0.5</span>)  <span class="co"># first arm</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>distB <span class="op">=</span> (<span class="st">'norm'</span>, <span class="op">-</span><span class="dv">1</span>, <span class="dv">2</span>)  <span class="co"># second arm</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>tab_cr <span class="op">=</span> TwoArmedBandit(distA<span class="op">=</span>distA, distB<span class="op">=</span>distB, </span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>                        disttype<span class="op">=</span><span class="st">"continuous"</span>)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>tab_cr</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>TwoArmedBandit_norm_1_norm_-1</code></pre>
+</div>
+</div>
+<p>Now let’s plot the distribution of the random return for each arm.</p>
+<div id="94a81f1f" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">## Plot the return distributions</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> np.linspace(<span class="op">-</span><span class="dv">10</span>, <span class="dv">10</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>norm1 <span class="op">=</span> stats.norm.pdf(x, <span class="dv">1</span>, <span class="fl">0.5</span>)  <span class="co"># first arm</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>norm2 <span class="op">=</span> stats.norm.pdf(x, <span class="op">-</span><span class="dv">1</span>, <span class="dv">2</span>)  <span class="co"># second arm</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>norms <span class="op">=</span> [norm1, norm2]</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">5</span>, <span class="fl">1.5</span>))</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> s_, ax <span class="kw">in</span> <span class="bu">enumerate</span>(axes):</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    ax.spines[[<span class="st">'right'</span>, <span class="st">'top'</span>, <span class="st">'left'</span>]].set_visible(<span class="va">False</span>)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    ax.plot(x, norms[s_], color<span class="op">=</span><span class="st">'blue'</span>)</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(<span class="st">"r"</span>)</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    ax.set_ylim([<span class="dv">0</span>,<span class="fl">0.8</span>])</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="st">"random return for arm "</span><span class="op">+</span><span class="bu">str</span>(s_<span class="op">+</span><span class="dv">1</span>), fontsize<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_ylabel(<span class="vs">r'</span><span class="dv">$</span><span class="vs">p</span><span class="kw">(</span><span class="vs">R = r</span><span class="kw">)</span><span class="dv">$</span><span class="vs">'</span>)</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_yticklabels([])</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_yticks([])</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>&lt;Figure size 1500x450 with 2 Axes&gt;</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="discretization-and-basic-reward-distribution-risboldsymbolaacute-s-r" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="discretization-and-basic-reward-distribution-risboldsymbolaacute-s-r"><span class="header-section-number">2.2</span> Discretization and basic reward distribution <span class="math inline">\(R^{i,s,\boldsymbol{a},\acute s, r}\)</span></h2>
+<section id="discretization-grid" class="level3">
+<h3 class="anchored" data-anchor-id="discretization-grid">Discretization grid</h3>
+<p>We assume an agent is equipped with a number <span class="math inline">\(n\)</span> of neurons, such that each neuron <span class="math inline">\(i \in [1, n]\)</span> is sensitive to an amount of reward <span class="math inline">\(r_i\)</span>, with <span class="math inline">\(r_1\)</span> the minimum amount of reward perceived and <span class="math inline">\(r_n\)</span> the maximum amount, and for all <span class="math inline">\(i \in [1, n]\)</span> <span class="math inline">\(r_i = r_1 + (i - 1) \frac{r_n - r_1}{n - 1}\)</span>.</p>
+<p>The discretization grid is the set <span class="math inline">\({r_i, i \in [1, n]}\)</span> of perceived amounts of rewards (also called “grid points”). We call “width” the difference <span class="math inline">\(\Delta r = (i - 1) \frac{r_{n} - r_1}{n - 1}\)</span> between two consecutive grid points.</p>
+<p>The discretization grid will be the support of all subsequent distributions.</p>
+<div id="a992443a" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-20T12:15:03.511414+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-20T12:15:03.618231+00:00&quot;,&quot;total&quot;:0.10682583100000898}}" data-execution_count="6">
+<hr>
+<p><a href="https://github.com/gerardoparra/pyDDRL/blob/main/pyDDRL/Agents/DDRLBase.py#L23" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="compute_discretization_grid" class="level3">
+<h3 class="anchored" data-anchor-id="compute_discretization_grid">compute_discretization_grid</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> compute_discretization_grid(</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    Rmin, <span class="co"># Minimum reward perceived</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    Rmax, <span class="co"># Maximum reward perceived</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    Nr, <span class="co"># Number of gridpoints</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>)<span class="op">-&gt;</span><span class="bu">tuple</span>: <span class="co"># Gridpoints, Width</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Compute discretization grid (rewards neurons are sensitive to) </em> for base DDRL agent.</p>
+</section>
+</div>
+</section>
+<section id="basic-reward-distribution-risboldsymbolaacute-s-r" class="level3">
+<h3 class="anchored" data-anchor-id="basic-reward-distribution-risboldsymbolaacute-s-r">Basic reward distribution <span class="math inline">\(R^{i,s,\boldsymbol{a},\acute s, r}\)</span></h3>
+<p>Let us now consider a stochastic game with reward tensor <span class="math inline">\(\boldsymbol{R}\)</span> and transition tensor <span class="math inline">\(\boldsymbol{T}\)</span>. For all <span class="math inline">\(r \in (r_j)_{j \in [1, n]}\)</span>, we define the reward distribution <span class="math inline">\(R^{i,s,\boldsymbol{a}, \acute s,r}\)</span> for agent <span class="math inline">\(i\)</span>, current state <span class="math inline">\(s\)</span>, joint action <span class="math inline">\(\boldsymbol{a}\)</span>, and next state <span class="math inline">\(\acute s\)</span>, as: <span class="math display">\[R^{i,s,\boldsymbol{a}, \acute s,r} = \int_{r - \frac{\Delta x}{2}}^{r + \frac{\Delta x}{2}} \frac{1}{\sqrt{2 \pi \sigma^{2}}} \exp[-\frac{(y - R^{i,s,\boldsymbol{a},\acute s})^2}{2 \sigma^2}] dy\]</span></p>
+<p>Note that each <span class="math inline">\(R^{i,s,\boldsymbol{a},\acute s}\)</span> is an entry of the reward tensor <span class="math inline">\(\boldsymbol{R}\)</span>. In other terms, for all <span class="math inline">\(r \in (r_j)_{j \in [1, n]}\)</span>, <span class="math inline">\(R^{i,s,\boldsymbol{a}, \acute s,r}\)</span> is the area under the bell curve centered in <span class="math inline">\(R^{i,s,\boldsymbol{a},\acute s}\)</span>, taken between <span class="math inline">\(r - \frac{\Delta r}{2}\)</span> and <span class="math inline">\(r + \frac{\Delta r}{2}\)</span>.</p>
+<p>For environments with stochastic returns (such as in the stochastic two-armed bandit task), the entries of the reward tensor are themselves distributions.</p>
+<p>If these distributions are continuous, we define <span class="math inline">\(F^{i,s,\boldsymbol{a},\acute s}(r)\)</span> the cumulative distribution function of continuous reward distribution <span class="math inline">\({}^c R^{i,s,\boldsymbol{a},\acute s}(r)\)</span>. Then, we discretize as follows:</p>
+<p><span class="math display">\[R^{i,s,\boldsymbol{a}, \acute s,r} = \int_{r - \frac{\Delta x}{2}}^{r + \frac{\Delta x}{2}} F^{i,s,\boldsymbol{a},\acute s}(y) dy\]</span></p>
+<p>We define a dispatcher function, which associates keywords with corresponding distribution shapes, so that we can compute relevant cumulative distribution functions:</p>
+<div id="59e9e9b5" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-20T12:15:03.619639+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-20T12:15:03.624000+00:00&quot;,&quot;total&quot;:0.0043672410000112905}}" data-execution_count="8">
+<hr>
+<p><a href="https://github.com/gerardoparra/pyDDRL/blob/main/pyDDRL/Agents/DDRLBase.py#L36" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="dispatcher" class="level3">
+<h3 class="anchored" data-anchor-id="dispatcher">dispatcher</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> dispatcher():</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+</div>
+<p>Now we can compute the basic reward distribution for our two cases: - stochastic returns following discrete distributions. - stochastic returns following continuous distributions.</p>
+<div id="73734477" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-20T12:15:03.630896+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-20T12:15:03.640561+00:00&quot;,&quot;total&quot;:0.009670354999997244}}" data-execution_count="10">
+<hr>
+<p><a href="https://github.com/gerardoparra/pyDDRL/blob/main/pyDDRL/Agents/DDRLBase.py#L42" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="compute_risjasr" class="level3">
+<h3 class="anchored" data-anchor-id="compute_risjasr">compute_Risjasr</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> compute_Risjasr(</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    env, <span class="co"># The env object</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    Rmin, <span class="co"># minimum perceived reward</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    Rmax, <span class="co"># maximum perceived reward</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    nr, <span class="co"># The number of reward bins</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    discretization_sigma, <span class="co"># Width of the discritization normal distribution</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>)<span class="op">-&gt;</span>numpy.ndarray: <span class="co"># Reward distribution</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Compute basic reward distribution Risjasr.</em></p>
+</section>
+</div>
+<p>Here are the discretized distributions for the two different two-armed bandits:</p>
+<ol type="1">
+<li>Stochastic two-armed bandit with discrete return</li>
+</ol>
+<div id="7900146c" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>env <span class="op">=</span> tab_1s</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>Rmin <span class="op">=</span> <span class="op">-</span><span class="fl">1.5</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>Rmax <span class="op">=</span> <span class="fl">1.5</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>nr <span class="op">=</span> <span class="dv">25</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>sigma <span class="op">=</span> <span class="fl">0.1</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>gridpoints, width <span class="op">=</span> compute_discretization_grid(Rmin, Rmax, nr)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>Rr <span class="op">=</span> compute_Risjasr(env, Rmin, Rmax, nr, sigma)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="f9c4546b" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot reward distribution for both arms</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">8</span>,<span class="dv">3</span>))</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> a, ax <span class="kw">in</span> <span class="bu">enumerate</span>(axes):</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    ax.spines[[<span class="st">'right'</span>, <span class="st">'top'</span>, <span class="st">'left'</span>]].set_visible(<span class="va">False</span>)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    ax.bar(gridpoints, Rr[<span class="dv">0</span>,<span class="dv">0</span>,a,<span class="dv">0</span>,:], width<span class="op">=</span><span class="fl">0.9</span><span class="op">*</span>width, color<span class="op">=</span><span class="st">'k'</span>)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    rm <span class="op">=</span> np.dot(gridpoints, Rr[<span class="dv">0</span>,<span class="dv">0</span>,a,<span class="dv">0</span>,:])</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    ax.plot([rm, rm], [<span class="fl">0.0</span>, <span class="fl">0.05</span>], c<span class="op">=</span><span class="st">'red'</span>, lw<span class="op">=</span><span class="dv">5</span>)</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(<span class="st">"r"</span>)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    ax.set_ylabel(<span class="vs">r"</span><span class="dv">$</span><span class="vs">R</span><span class="dv">^</span><span class="vs">{i,s,a,</span><span class="ch">\a</span><span class="vs">cute s, r}</span><span class="dv">$</span><span class="vs">"</span>)</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="st">"Reward distribution for arm "</span><span class="op">+</span><span class="bu">str</span>(a<span class="op">+</span><span class="dv">1</span>))</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>    ax.set_ylim([<span class="dv">0</span>, np.<span class="bu">max</span>(Rr[:,:,a,:])<span class="op">+</span><span class="fl">0.01</span>])</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>&lt;Figure size 2400x900 with 2 Axes&gt;</code></pre>
+</div>
+</div>
+<ol start="2" type="1">
+<li>Stochastic two-armed bandit with continuous return</li>
+</ol>
+<div id="ad727318" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>env <span class="op">=</span> tab_cr</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>Rmin <span class="op">=</span> <span class="op">-</span><span class="dv">10</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>Rmax <span class="op">=</span> <span class="dv">10</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>nr <span class="op">=</span> <span class="dv">29</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>sigma <span class="op">=</span> <span class="fl">0.1</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>gridpoints, width <span class="op">=</span> compute_discretization_grid(Rmin, Rmax, nr)</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>Rr <span class="op">=</span> compute_Risjasr(env, Rmin, Rmax, nr, sigma)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="32767119" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot reward distribution for both arms</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">8</span>,<span class="dv">3</span>))</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> a, ax <span class="kw">in</span> <span class="bu">enumerate</span>(axes):</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    ax.spines[[<span class="st">'right'</span>, <span class="st">'top'</span>, <span class="st">'left'</span>]].set_visible(<span class="va">False</span>)</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    ax.bar(gridpoints, Rr[<span class="dv">0</span>,<span class="dv">0</span>,a,<span class="dv">0</span>,:], width<span class="op">=</span><span class="fl">0.9</span><span class="op">*</span>width, color<span class="op">=</span><span class="st">'k'</span>)</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    rm <span class="op">=</span> np.dot(gridpoints, Rr[<span class="dv">0</span>,<span class="dv">0</span>,a,<span class="dv">0</span>,:])</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    ax.plot([rm, rm], [<span class="fl">0.0</span>, <span class="fl">0.05</span>], c<span class="op">=</span><span class="st">'red'</span>, lw<span class="op">=</span><span class="dv">5</span>)</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(<span class="st">"r"</span>)</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>    ax.set_ylabel(<span class="vs">r"</span><span class="dv">$</span><span class="vs">R</span><span class="dv">^</span><span class="vs">{i,s,a,</span><span class="ch">\a</span><span class="vs">cute s, r}</span><span class="dv">$</span><span class="vs">"</span>)</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="st">"Reward distribution for arm "</span><span class="op">+</span><span class="bu">str</span>(a<span class="op">+</span><span class="dv">1</span>))</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    ax.set_ylim([<span class="dv">0</span>, <span class="fl">0.5</span>])</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>&lt;Figure size 2400x900 with 2 Axes&gt;</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="smoothed-bellman-kronecker-delta-deltaivracute-v" class="level2" data-number="2.3">
+<h2 data-number="2.3" class="anchored" data-anchor-id="smoothed-bellman-kronecker-delta-deltaivracute-v"><span class="header-section-number">2.3</span> Smoothed Bellman Kronecker delta <span class="math inline">\(\delta^{i,v,r,\acute v}\)</span></h2>
+<p>In expected-value RL, the return of a state <span class="math inline">\(s\)</span> for agent <span class="math inline">\(i\)</span> is computed via the Bellman equation:</p>
+<p><span class="math display">\[ V^{i,s} = (1 - \gamma^{i}) R^{i,s} + \gamma^{i} V^{i, \acute s} \]</span> where <span class="math inline">\(V^{i,\acute s}\)</span> is the return of the next state, <span class="math inline">\(\acute s\)</span>.</p>
+<p>In distributional form, we want to compute the probability that (discretized) values <span class="math inline">\(r\)</span>, <span class="math inline">\(v\)</span> and <span class="math inline">\(\acute v\)</span> satisfy the Bellman equation <span class="math inline">\(v = (1-\gamma^i)r + \gamma^i \acute v\)</span>. To this end, we introduce the smoothed Bellman Kronecker delta, which also allows for some uncertainty about the categorization into different bins. This uncertainty is also modulated by the discretization standard deviation, <span class="math inline">\(\sigma\)</span>. Calling <span class="math inline">\(val(r,\acute v)\)</span> the expression <span class="math inline">\((1-\gamma^i)r + \gamma^i \acute v\)</span>,</p>
+<p><span class="math display">\[\delta^{i,v,r,\acute v} = \int_{v - \frac{w}{2}}^{v + \frac{w}{2}} \frac{1}{\sqrt{2 \pi \sigma^{2}}} \exp[-\frac{[y - val(r,\acute v)]^2}{2 \sigma^2}] dy\]</span></p>
+<p>The following function computes the Bellman Kronecker delta for given environment, minimum and maximum perceived rewards, number of neurons, and discount factors:</p>
+<div id="4c158717" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-20T12:15:03.645295+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-20T12:15:03.651508+00:00&quot;,&quot;total&quot;:0.0062181339999938245}}" data-execution_count="12">
+<hr>
+<p><a href="https://github.com/gerardoparra/pyDDRL/blob/main/pyDDRL/Agents/DDRLBase.py#L114" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="compute_b_ivrv_" class="level3">
+<h3 class="anchored" data-anchor-id="compute_b_ivrv_">compute_b_ivrv_</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> compute_b_ivrv_(</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    env, <span class="co"># env object</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    Rmin, Rmax, nr, <span class="co"># number of bins</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>    discretization_sigma, <span class="co"># width of discretization normal distribution</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>    gamma, <span class="co"># discount factor</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>    pre, <span class="co"># prefactor</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>)<span class="op">-&gt;</span>numpy.ndarray:</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Compute smoothed Bellman Kronecker delta b_ivrv_.</em></p>
+</section>
+</div>
+</section>
+<section id="ddrl-base-class" class="level2" data-number="2.4">
+<h2 data-number="2.4" class="anchored" data-anchor-id="ddrl-base-class"><span class="header-section-number">2.4</span> DDRL Base class</h2>
+<p>Now we can define the DDRL Base class:</p>
+<div id="95db49bb" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-20T12:15:03.655262+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-20T12:15:03.663778+00:00&quot;,&quot;total&quot;:0.008523356000011972}}" data-execution_count="14">
+<hr>
+<p><a href="https://github.com/gerardoparra/pyDDRL/blob/main/pyDDRL/Agents/DDRLBase.py#L150" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="ddrlbase" class="level3">
+<h3 class="anchored" data-anchor-id="ddrlbase">DDRLBase</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> DDRLBase(</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>    env, <span class="co"># An environment object</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>    nr_reward_bins:<span class="bu">int</span><span class="op">=</span><span class="dv">8</span>, <span class="co"># The number of bins to resolve rewards</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>    discretization_sigma:<span class="bu">float</span><span class="op">=</span><span class="fl">0.1</span>, <span class="co"># standard div for reward discretization</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>    learning_rates:<span class="bu">float</span><span class="op">=</span><span class="fl">0.1</span>, <span class="co"># agents' learning rates</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>    discount_factors:<span class="bu">float</span><span class="op">=</span><span class="fl">0.0</span>, <span class="co"># agents' discount factors</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>    Rmin:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># minimum perceived reward</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>    Rmax:NoneType<span class="op">=</span><span class="va">None</span>, <span class="co"># maximum perceived reward</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>    method:<span class="bu">str</span><span class="op">=</span><span class="st">'mean'</span>, <span class="co"># biasing method</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>    tau:<span class="bu">float</span><span class="op">=</span><span class="fl">0.5</span>, <span class="co"># tau for expectile and quantile methods</span></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>    wU:<span class="bu">float</span><span class="op">=</span><span class="fl">1.0</span>, <span class="co"># upper weight for weights method</span></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>    choice_intensities:<span class="bu">float</span><span class="op">=</span><span class="fl">1.0</span>, <span class="co"># agents' choice intensities</span></span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>    opteinsum:<span class="bu">bool</span><span class="op">=</span><span class="va">True</span>, <span class="co"># optimize einsum functions</span></span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>    use_prefactor:<span class="bu">bool</span><span class="op">=</span><span class="va">False</span>, <span class="co"># scale returns with rewards</span></span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>    <span class="op">**</span>kwargs</span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Base class for Distributional Deterministic Reinforcement Learning </em> in strategy space.</p>
+</section>
+</div>
+<p>We consider the following agent-environment interface: * 1 agent with learning rate <span class="math inline">\(\alpha=0.1\)</span>, discount factor <span class="math inline">\(\gamma=0.9\)</span>, choice intensity <span class="math inline">\(\beta=4\)</span>; * playing the aforementioned stochastic two-armed bandit task with continuous return.</p>
+<div id="20077b84" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>aei <span class="op">=</span> DDRLBase(tab_cr,  <span class="co"># environment</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>               nr_reward_bins<span class="op">=</span><span class="dv">29</span>,</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>               discretization_sigma<span class="op">=</span><span class="fl">0.1</span>,</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>               learning_rates<span class="op">=</span><span class="fl">0.1</span>,</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>               discount_factors<span class="op">=</span><span class="fl">0.9</span>,</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>               choice_intensities<span class="op">=</span><span class="fl">4.</span>,</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>               Rmin<span class="op">=-</span><span class="dv">10</span>,</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>               Rmax<span class="op">=</span><span class="dv">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>WARNING:2025-12-21 19:05:37,158:jax._src.xla_bridge:794: An NVIDIA GPU may be present on this machine, but a CUDA-enabled jaxlib is not installed. Falling back to cpu.</code></pre>
+</div>
+</div>
+</section>
+<section id="computing-distributions-in-ddrl" class="level2" data-number="2.5">
+<h2 data-number="2.5" class="anchored" data-anchor-id="computing-distributions-in-ddrl"><span class="header-section-number">2.5</span> Computing distributions in DDRL</h2>
+<p>Now we can compute and plot all the distributions we need.</p>
+<section id="reward-distributions-risair-and-risr" class="level3">
+<h3 class="anchored" data-anchor-id="reward-distributions-risair-and-risr">Reward distributions <span class="math inline">\(R^{i,s,a^i,r}\)</span> and <span class="math inline">\(R^{i,s,r}\)</span></h3>
+<p>The basic reward distribution can be averaged over joint actions <span class="math inline">\(\boldsymbol{a}\)</span> and next states <span class="math inline">\(\acute s\)</span>. We call <span class="math inline">\(R^{i,s,a^i,r}\)</span> the reward distribution for agent <span class="math inline">\(i\)</span> taking action <span class="math inline">\(a^i\)</span> in state <span class="math inline">\(s\)</span>, averaged over transitions to the next state <span class="math inline">\(\acute s\)</span>, and over other agents’ actions <span class="math inline">\(\boldsymbol{a}^{j}\)</span>: <span class="math display">\[R^{i,s,a^i,r} = \sum_{\acute s} \sum_{\boldsymbol{a}^{j}} \prod_{j}\boldsymbol{X}^{j, s, \boldsymbol{a}^{j}} T^{s,a^i\boldsymbol{a}^{j},\acute s} R^{i,s,a^i\boldsymbol{a}^{j},\acute s,r}\]</span></p>
+<div id="1e16d142" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-20T12:15:03.667385+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-20T12:15:03.673882+00:00&quot;,&quot;total&quot;:0.0065020070000230135}}" data-execution_count="16">
+<hr>
+<p><a href="https://github.com/gerardoparra/pyDDRL/blob/main/pyDDRL/Agents/DDRLBase.py#L229" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="risar" class="level3">
+<h3 class="anchored" data-anchor-id="risar">Risar</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> Risar(</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>    Xisa</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>)<span class="op">-&gt;</span>jax.Array:</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+</div>
+<p>We assume the agent chooses arm 1 with probability 0.3, and arm 2 with probability 0.7:</p>
+<div id="898d7a0d" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># agent's strategy</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> np.ones((<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">2</span>)) <span class="op">*</span> <span class="fl">0.3</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>X[:,:,<span class="dv">1</span>] <span class="op">=</span> <span class="dv">1</span> <span class="op">-</span> X[:,:,<span class="dv">0</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Now we can plot the reward distribution <span class="math inline">\(R^{i,s,a^i,r}\)</span> for each arm.</p>
+<div id="bf40489b" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>Rr <span class="op">=</span> aei.Risar(X)</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot reward distribution Risar for both arms</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">8</span>,<span class="dv">3</span>))</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> a, ax <span class="kw">in</span> <span class="bu">enumerate</span>(axes):</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>    ax.spines[[<span class="st">'right'</span>, <span class="st">'top'</span>, <span class="st">'left'</span>]].set_visible(<span class="va">False</span>)</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>    ax.bar(gridpoints, Rr[<span class="dv">0</span>,<span class="dv">0</span>,a,:], width<span class="op">=</span><span class="fl">0.9</span><span class="op">*</span>width, color<span class="op">=</span><span class="st">'k'</span>)</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>    rm <span class="op">=</span> np.dot(gridpoints, Rr[<span class="dv">0</span>,<span class="dv">0</span>,a,:])</span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>    ax.plot([rm, rm], [<span class="fl">0.0</span>, <span class="fl">0.05</span>], c<span class="op">=</span><span class="st">'red'</span>, lw<span class="op">=</span><span class="dv">5</span>)</span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(<span class="st">"r"</span>)</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>    ax.set_ylabel(<span class="vs">r"</span><span class="dv">$</span><span class="vs">R</span><span class="dv">^</span><span class="vs">{i,s,a,r}</span><span class="dv">$</span><span class="vs">"</span>)</span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="st">"Reward distribution for arm "</span><span class="op">+</span><span class="bu">str</span>(a<span class="op">+</span><span class="dv">1</span>))</span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>    ax.set_ylim([<span class="dv">0</span>, np.<span class="bu">max</span>(Rr[<span class="dv">0</span>,<span class="dv">0</span>,:,:]<span class="op">+</span><span class="fl">0.01</span>)])</span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>&lt;Figure size 2400x900 with 2 Axes&gt;</code></pre>
+</div>
+</div>
+<p>The reward distribution <span class="math inline">\(R^{i,s,r}\)</span> denotes the probability that agent <span class="math inline">\(i\)</span> receives reward <span class="math inline">\(r\)</span> in state <span class="math inline">\(s\)</span>. It is averaged over joint actions <span class="math inline">\(\boldsymbol{a}\)</span> (including agent <span class="math inline">\(i\)</span>’s) and next states <span class="math inline">\(\acute s\)</span>: <span class="math display">\[R^{i,s,r} = \sum_{\acute s} \sum_{\boldsymbol{a}} \prod_{j}\boldsymbol{X}^{j, s, \boldsymbol{a}}\cdot T^{s,\boldsymbol{a},\acute s} \cdot R^{i,s,\boldsymbol{a},\acute s,r}\]</span></p>
+<div id="61b4fc05" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-20T12:15:03.677237+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-20T12:15:03.682752+00:00&quot;,&quot;total&quot;:0.005520308999990675}}" data-execution_count="18">
+<hr>
+<p><a href="https://github.com/gerardoparra/pyDDRL/blob/main/pyDDRL/Agents/DDRLBase.py#L252" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="risr" class="level3">
+<h3 class="anchored" data-anchor-id="risr">Risr</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> Risr(</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>    Xisa</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Compute reward distribution Risr joint strategy <code>Xisa</code>.</em></p>
+</section>
+</div>
+<p>Now plotting this reward distribution for our agent:</p>
+<div id="c7ecd035" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>Rr <span class="op">=</span> aei.Risr(X)</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot reward distribution Risr for both arms</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">1</span>, figsize<span class="op">=</span>(<span class="dv">4</span>,<span class="dv">3</span>))</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>ax.spines[[<span class="st">'right'</span>, <span class="st">'top'</span>, <span class="st">'left'</span>]].set_visible(<span class="va">False</span>)</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>ax.bar(gridpoints, Rr[<span class="dv">0</span>,<span class="dv">0</span>,:], width<span class="op">=</span><span class="fl">0.9</span><span class="op">*</span>width, color<span class="op">=</span><span class="st">'k'</span>)</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>rm <span class="op">=</span> np.dot(gridpoints, Rr[<span class="dv">0</span>,<span class="dv">0</span>,:])</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>ax.plot([rm, rm], [<span class="fl">0.0</span>, <span class="fl">0.05</span>], c<span class="op">=</span><span class="st">'red'</span>, lw<span class="op">=</span><span class="dv">5</span>)</span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">"r"</span>)</span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="vs">r"</span><span class="dv">$</span><span class="vs">R</span><span class="dv">^</span><span class="vs">{i,s,r}</span><span class="dv">$</span><span class="vs">"</span>)</span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Reward distribution averaged over actions"</span>)</span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>&lt;Figure size 1200x900 with 1 Axes&gt;</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="v-return-distribution-visv" class="level2" data-number="2.6">
+<h2 data-number="2.6" class="anchored" data-anchor-id="v-return-distribution-visv"><span class="header-section-number">2.6</span> V-return distribution <span class="math inline">\(V^{i,s,v}\)</span></h2>
+<p>We now calculate the V-return distribution <span class="math inline">\(V^{i,s,v}\)</span>. The probability that the random return <span class="math inline">\(V\)</span> equals <span class="math inline">\(v\)</span> for agent <span class="math inline">\(i\)</span> in state <span class="math inline">\(s\)</span> is a conjunction of the following probabilities: * that random reward <span class="math inline">\(R\)</span> for agent <span class="math inline">\(i\)</span> in state <span class="math inline">\(s\)</span> equals <span class="math inline">\(r\)</span>; * that there is a transition from state <span class="math inline">\(s\)</span> to state <span class="math inline">\(\acute s\)</span>; * that <span class="math inline">\(v\)</span>, <span class="math inline">\(r\)</span> and <span class="math inline">\(\acute v\)</span> conform to the above Bellman equation.</p>
+<p>The probability that there is a transition from any state <span class="math inline">\(s\)</span> to any state <span class="math inline">\(\acute s\)</span> is given by the environment’s stationary distribution, <span class="math inline">\(\bar T^{s,\acute s}\)</span>.</p>
+<p>Therefore, <span class="math display">\[V^{i,s,v} =  \sum_{r, \acute v, \acute s} \delta^{i,v,r,\acute v} R^{i,s,r} \bar T^{s,\acute s} V^{i, \acute s, \acute v}\]</span></p>
+<p>We now define <span class="math display">\[M^{i,s,v,\acute s,\acute v} = \sum_r \delta^{i,v,r,\acute v} R^{i,s,r} \bar T^{s\acute s}\]</span></p>
+<p>Thus, <span class="math display">\[V^{i,s,v} =  \sum_{\acute v, \acute s} M^{i,s,v,\acute s,\acute v} V^{i, \acute s, \acute v}\]</span></p>
+<p>We can combine the indices <span class="math inline">\(s \times v = w\)</span> and <span class="math inline">\(\acute s \times \acute v = \acute w\)</span>. Now, <span class="math inline">\(V^{i,w} = \sum_{\acute w} M^{i, w, \acute w} V^{i,\acute w}\)</span>. This makes it apparent that the return distribution should be found in the eigenvalues of the matrix <span class="math inline">\(M\)</span>.</p>
+<p>The following function computes the matrix <span class="math inline">\(M\)</span>:</p>
+<div id="d3aa1634" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-20T12:15:03.685809+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-20T12:15:03.691752+00:00&quot;,&quot;total&quot;:0.00595049500000755}}" data-execution_count="20">
+<hr>
+<p><a href="https://github.com/gerardoparra/pyDDRL/blob/main/pyDDRL/Agents/DDRLBase.py#L271" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="m_iww_" class="level3">
+<h3 class="anchored" data-anchor-id="m_iww_">M_iww_</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> M_iww_(</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>    Xisa, <span class="co"># Behavior profiles</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>)<span class="op">-&gt;</span>jax.Array:</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Compute matrix M_iww_ given joint strategy <code>Xisa</code>.</em></p>
+</section>
+</div>
+<p>Now, we can compute the V-return distribution <span class="math inline">\(V^{i,s,v}\)</span>:</p>
+<div id="22daa2b5" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-20T12:15:03.695610+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-20T12:15:03.701662+00:00&quot;,&quot;total&quot;:0.0060569399999792495}}" data-execution_count="22">
+<hr>
+<p><a href="https://github.com/gerardoparra/pyDDRL/blob/main/pyDDRL/Agents/DDRLBase.py#L292" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="visv" class="level3">
+<h3 class="anchored" data-anchor-id="visv">Visv</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> Visv(</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>    Xisa, <span class="co"># Behavior profiles</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>)<span class="op">-&gt;</span>jax.Array:</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Compute V-return distribution Visv given joint strategy <code>Xisa</code>.</em></p>
+</section>
+</div>
+<p>Here is an example with the above agent-environment interface:</p>
+<div id="32dd7c69" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>Vv <span class="op">=</span> aei.Visv(X)</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot reward distribution Risar for both arms</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">1</span>, figsize<span class="op">=</span>(<span class="dv">4</span>,<span class="dv">3</span>))</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>ax.spines[[<span class="st">'right'</span>, <span class="st">'top'</span>, <span class="st">'left'</span>]].set_visible(<span class="va">False</span>)</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>ax.bar(gridpoints, Vv[<span class="dv">0</span>,<span class="dv">0</span>,:], width<span class="op">=</span><span class="fl">0.9</span><span class="op">*</span>width, color<span class="op">=</span><span class="st">'k'</span>)</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>rm <span class="op">=</span> np.dot(gridpoints, Vv[<span class="dv">0</span>,<span class="dv">0</span>,:])</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>ax.plot([rm, rm], [<span class="fl">0.0</span>, <span class="fl">0.01</span>], c<span class="op">=</span><span class="st">'red'</span>, lw<span class="op">=</span><span class="dv">5</span>)</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">"v"</span>)</span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="vs">r"</span><span class="dv">$</span><span class="vs">V</span><span class="dv">^</span><span class="vs">{i,s,v}</span><span class="dv">$</span><span class="vs">"</span>)</span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"V-return distribution in state 0"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>Text(0.5, 1.0, 'Value distribution in state 0')</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre><code>&lt;Figure size 1200x900 with 1 Axes&gt;</code></pre>
+</div>
+</div>
+</section>
+<section id="additional-functions" class="level2" data-number="2.7">
+<h2 data-number="2.7" class="anchored" data-anchor-id="additional-functions"><span class="header-section-number">2.7</span> Additional functions</h2>
+<p>The functions below help compute the agents’ learning trajectories in strategy space. The first one performs a learning step, while the second one performs a reverse step.</p>
+<div id="4ed8ec67" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-20T12:15:03.704149+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-20T12:15:03.709299+00:00&quot;,&quot;total&quot;:0.0051570610000055694}}" data-execution_count="24">
+<hr>
+<p><a href="https://github.com/gerardoparra/pyDDRL/blob/main/pyDDRL/Agents/DDRLBase.py#L323" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="step" class="level3">
+<h3 class="anchored" data-anchor-id="step">step</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> step(</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>    Xisa, <span class="co"># Behavior profiles</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>)<span class="op">-&gt;</span>jax.Array:</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Performs a learning step along the reward-prediction/temporal-difference error</em> in strategy space, given joint strategy <code>Xisa</code>.</p>
+</section>
+</div>
+<div id="e9457d9e" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-20T12:15:03.711144+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-20T12:15:03.715948+00:00&quot;,&quot;total&quot;:0.004808392999990474}}" data-execution_count="26">
+<hr>
+<p><a href="https://github.com/gerardoparra/pyDDRL/blob/main/pyDDRL/Agents/DDRLBase.py#L339" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="reverse_step" class="level3">
+<h3 class="anchored" data-anchor-id="reverse_step">reverse_step</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb37"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> reverse_step(</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>    Xisa, <span class="co"># Behavior profiles</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>)<span class="op">-&gt;</span>jax.Array:</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Performs a reverse learning step along the reward-prediction/temporal-difference error</em> in strategy space, given joint strategy <code>Xisa</code>.</p>
+</section>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+      window.quartoDecorateExternalLinks = function (root) {
+     var links = (root || window.document).querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+          if (!link.classList.contains('no-external-icon')) {
+          }
+        }
+      }
+      };
+      window.quartoDecorateExternalLinks(window.document);
+    // Esc closes the popup (WCAG 1.4.13) and focus leaving both trigger and
+    // popup closes it (WCAG 2.4.11); tippy handles neither for interactive popups.
+    const hideOnEscAndFocusOut = {
+      name: 'hideOnEscAndFocusOut',
+      defaultValue: true,
+      fn(instance) {
+        const dismiss = () => {
+          // A show scheduled by the trigger delay would otherwise reopen it
+          instance.clearDelayTimeouts();
+          instance.hide();
+        };
+        const onKeyDown = (event) => {
+          if (event.key !== 'Escape') {
+            return;
+          }
+          // Keep Esc from also reaching page handlers (e.g. reveal.js overview),
+          // except an open reveal.js slide menu, which Esc should close too.
+          // The menu handles keys only when its keyboard option is on.
+          const menuHandlesEsc = window.Reveal?.getPlugin?.('menu')?.isOpen() &&
+            window.Reveal.getConfig().menu?.keyboard !== false;
+          if (!menuHandlesEsc) {
+            event.stopPropagation();
+          }
+          if (instance.popper.contains(window.document.activeElement)) {
+            // Disabled while refocusing so the focus trigger does not reopen it
+            instance.disable();
+            instance.reference.focus();
+            instance.enable();
+          }
+          dismiss();
+        };
+        const onFocusOut = (event) => {
+          const target = event.relatedTarget;
+          if (target && !instance.reference.contains(target) &&
+              !instance.popper.contains(target)) {
+            dismiss();
+          }
+        };
+        // On the trigger too: a click trigger (code-annotations: select) has no
+        // blur handling. Attached for the instance's lifetime so leaving the
+        // trigger also cancels a show still pending on the trigger delay.
+        instance.reference.addEventListener('focusout', onFocusOut);
+        return {
+          onShow() {
+            window.document.addEventListener('keydown', onKeyDown, true);
+            instance.popper.addEventListener('focusout', onFocusOut);
+          },
+          onHide() {
+            window.document.removeEventListener('keydown', onKeyDown, true);
+            instance.popper.removeEventListener('focusout', onFocusOut);
+          },
+          onDestroy() {
+            instance.reference.removeEventListener('focusout', onFocusOut);
+          },
+        };
+      },
+    };
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+        plugins: [hideOnEscAndFocusOut],
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          // Each band is positioned against its own containing block, which is
+          // not the offsetParent of the lines, so place it from client rects.
+          const placeBand = (band, firstEl, lastEl, codeBlock) => {
+            const container = band.offsetParent;
+            if (container === null) {
+              return;
+            }
+            const containerRect = container.getBoundingClientRect();
+            // Reveal.js scales slides with a transform, so convert client
+            // pixels back to the CSS pixels of the container.
+            const scale = containerRect.height / container.offsetHeight || 1;
+            const firstRect = firstEl.getBoundingClientRect();
+            const lastRect = lastEl.getBoundingClientRect();
+            const top = (firstRect.top - containerRect.top) / scale - container.clientTop + container.scrollTop;
+            const height = (lastRect.bottom - firstRect.top) / scale;
+            band.style.top = top - 2 + "px";
+            band.style.height = height + 4 + "px";
+            if (codeBlock) {
+              // Without the copy button wrapper, the containing block is wider
+              // than the code block, so span the code block explicitly.
+              const blockRect = codeBlock.getBoundingClientRect();
+              band.style.left = (blockRect.left - containerRect.left) / scale - container.clientLeft + container.scrollLeft + "px";
+              band.style.width = blockRect.width / scale + "px";
+            }
+          };
+          if (lineIds.length > 0) {
+            const el = window.document.getElementById(lineIds[0]);
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const parent = el.parentElement.parentElement;
+            // cook up a div (if necessary) and position it
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            placeBand(div, el, lastEl, parent.closest("div.sourceCode") || parent);
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            placeBand(gutterDiv, el, lastEl);
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+  <script type="application/javascript">
+  window.quartoScrollableRegionsLabels = {"code":"Scrollable code","output":"Scrollable output"};
+  </script>
+<nav class="page-navigation" aria-label="Page">
+  <div class="nav-page nav-page-previous">
+      <a href="./agents.html" class="pagination-link" aria-label="Agents {#sec-agents}">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Agents {#sec-agents}</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./02.02_ddrlsarsa.html" class="pagination-link" aria-label="DDRL SARSA {#sec-ddrlsarsa}">
+        <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">DDRL SARSA {#sec-ddrlsarsa}</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
