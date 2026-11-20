@@ -27,14 +27,13 @@ jobs:
       - name: Install Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
-      - name: Constrain setuptools and install dependencies
+      - name: Install dependencies without build isolation
         run: |
-          echo "setuptools<81" > /tmp/constraints.txt
           python -m pip install --upgrade pip "setuptools<81" wheel
           pip install -q "nbdev>=3.3.10"
-          # If pyCRLD still fails in build isolation, install it first with --no-build-isolation:
+          # If pyCRLD is installed explicitly here rather than from pyproject.toml, install it first:
           # pip install -q --no-build-isolation "pyCRLD @ git+https://github.com/OWNER/pyCRLD.git"
-          pip install -q -e '.[dev]' --extra-index-url https://download.pytorch.org/whl/cpu
+          pip install -q --no-build-isolation -e '.[dev]' --extra-index-url https://download.pytorch.org/whl/cpu
 
       - name: Export and build documentation
         run: |
