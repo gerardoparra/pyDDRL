@@ -7,3 +7,8 @@ website:
   description: "Distributional Deterministic Reinforcement Learning"
   repo-branch: main
   repo-url: "https://github.com/gerardoparra/pyDDRL"
+
+format-links:
+  - html
+  - format: commonmark
+    text: Markdown
