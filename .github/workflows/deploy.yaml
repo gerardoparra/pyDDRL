@@ -8,7 +8,16 @@ on:
   push:
     branches: [ "main", "master" ]
   workflow_dispatch:
+
+env:
+  PIP_CONSTRAINT: /tmp/constraints.txt
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    steps: [uses: answerdotai/workflows/quarto-ghp3@master]
+    steps:
+      - name: Pin setuptools before composite action
+        run: |
+          echo "setuptools<81" > /tmp/constraints.txt
+          python -m pip install --upgrade pip "setuptools<81" wheel
+      - uses: answerdotai/workflows/quarto-ghp3@master
